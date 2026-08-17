@@ -1,0 +1,33 @@
+{
+  "name": "halflife",
+  "version": "0.1.0",
+  "private": true,
+  "description": "The job feed that knows which listings are already dead. Self-healing collectors on Bright Data Scraper Studio.",
+  "type": "module",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "setup": "npm install && npm run db:push",
+    "db:push": "npm run db:push -w @halflife/core",
+    "collect": "npm run collect -w @halflife/core",
+    "verify": "npm run verify -w @halflife/core",
+    "audit:heal": "npm run audit:heal -w @halflife/core",
+    "test": "vitest run",
+    "typecheck": "tsc --build --pretty",
+    "lint": "eslint . --max-warnings 0",
+    "format": "prettier --write ."
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "eslint": "^9.17.0",
+    "prettier": "^3.4.2",
+    "typescript": "^5.7.2",
+    "typescript-eslint": "^8.18.1",
+    "vitest": "^2.1.8"
+  }
+}

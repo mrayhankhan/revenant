@@ -1,0 +1,26 @@
+node_modules/
+dist/
+.next/
+out/
+*.tsbuildinfo
+
+# Local database + snapshots
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+data/
+
+# Secrets — never commit
+.env
+.env.local
+.env.*.local
+
+# Personal data. Fixtures use a synthetic resume only.
+resume.pdf
+resume.docx
+profile.private.*
+
+.DS_Store
+Thumbs.db
+coverage/
