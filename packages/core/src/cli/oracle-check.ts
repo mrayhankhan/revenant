@@ -5,7 +5,7 @@
  * be graded and ghost detection loses its authoritative signal — better to know
  * that up front than to discover it in the middle of a run.
  *
- *   npm run oracle:check -w @halflife/core
+ *   npm run oracle:check -w @revenant/core
  */
 import { boardExists, greenhouseOracle, leverOracle } from '../oracle/ats.js';
 import type { Oracle } from '../collectors/base.js';

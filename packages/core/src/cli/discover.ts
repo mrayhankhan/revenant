@@ -1,8 +1,8 @@
 /**
  * Resolves company names to their public ATS boards.
  *
- *   npm run discover -w @halflife/core -- Stripe Vercel Ramp
- *   npm run discover -w @halflife/core -- --file companies.txt
+ *   npm run discover -w @revenant/core -- Stripe Vercel Ramp
+ *   npm run discover -w @revenant/core -- --file companies.txt
  *
  * Costs no Bright Data credits: every probe hits the platform's own free feed.
  * Confirmed boards are what the collectors are then pointed at.

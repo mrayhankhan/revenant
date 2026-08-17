@@ -1,6 +1,10 @@
-# Halflife
+# Revenant
 
 **The job feed that knows which listings are already dead.**
+
+*A revenant is something that keeps walking after it has died — which is exactly
+what a ghost job is: a listing still live on an aggregator for a role that was
+filled, cancelled, or never real.*
 
 Submission for *Into the Scrape-Verse* (WeMakeDevs × Bright Data, Aug 17–23 2026).
 
@@ -14,7 +18,7 @@ changes its markup and the salary field quietly becomes `null` for every row aft
 that — and nobody notices, because a missing field looks exactly like a job that
 didn't post a salary.
 
-Halflife treats a job posting as a **decaying object**. Every listing carries a
+Revenant treats a job posting as a **decaying object**. Every listing carries a
 freshness score and a per-field verification timestamp. We re-verify continuously,
 detect ghost jobs, collapse duplicates across boards, and when a board changes its
 layout the collector repairs itself and backfills the gap.
@@ -30,7 +34,7 @@ auto-apply, no logged-in scraping, no ATS automation.
 
 ## 2. Why this scores on all six criteria
 
-| Criterion | How Halflife scores |
+| Criterion | How Revenant scores |
 |---|---|
 | **Potential impact** | Everyone in the room has job-hunted. Ghost jobs and stale listings are a felt, universal problem with no good existing solution. |
 | **Creativity & innovation** | Ghost-job detection and field-level decay scoring are genuinely novel. No aggregator does this. It reframes "job board" as "data freshness problem." |
@@ -167,7 +171,7 @@ permanent evergreen req collecting résumés. We infer it from converging signal
 | `apply_url` dead or redirects to a generic careers index | high | Cheap HEAD request, no Studio credits. |
 | Description unchanged across many verifications | low | Content hash. |
 
-Output per listing: a **halflife score** (0–100) and a plain-English reason string
+Output per listing: a **liveness score** (0–100) and a plain-English reason string
 — *"Still listed on Indeed, but removed from Acme's careers page 12 days ago."*
 The reason string is what sells it in the demo; never show a bare number.
 
@@ -203,7 +207,7 @@ observe → baseline → detect → heal → verify → backfill → record
 
 Four screens. Dark, dense, typographic. Data-first, not marketing-site.
 
-1. **Feed.** Job cards with a halflife indicator (a decaying bar, not a badge),
+1. **Feed.** Job cards with a liveness indicator (a decaying bar, not a badge),
    match score, comp, source pills showing all boards a deduped role appeared on.
    Filters: freshness, comp, remote, stack. Default sort: *freshest that matches*.
 2. **Listing.** Parsed requirements as chips. Decay timeline — every verification as
@@ -251,7 +255,7 @@ assume it's staged.
 ## 9. Repo layout — the Spider-Sense track
 
 ```
-halflife/
+revenant/
 ├── README.md              # problem, architecture, Studio usage, AI disclosure, one-command setup
 ├── SPEC.md                # this file
 ├── .env.example
@@ -268,7 +272,7 @@ halflife/
 │   │   └── ...
 │   ├── normalize/         # source rows → canonical Posting
 │   ├── dedup/
-│   ├── decay/             # halflife scoring + ghost detection
+│   ├── decay/             # liveness scoring + ghost detection
 │   ├── healing/           # baselines, drift detection, heal orchestration
 │   └── tailor/            # CV + cover letter, provenance tracking
 ├── worker/                # scheduler; composes the packages, holds no logic itself
@@ -294,7 +298,7 @@ structure.
 | **17** | Scaffold + first collector | Repo runs. Greenhouse collector returns typed rows into SQLite. |
 | **18** | All 6 collectors + normalizer + dedup | 1,000+ real listings, deduped, in canonical schema. |
 | **19** | Healing engine | Baselines recorded, drift detected, heal triggers, `heal_events` persisted. Chaos target deployed. |
-| **20** | Decay + ghost detection | Halflife scores with reason strings. Careers-page cross-check working. |
+| **20** | Decay + ghost detection | Liveness scores with reason strings. Careers-page cross-check working. |
 | **21** | UI: feed + listing + health | All three screens on real data. This is a full design day — do not compress it. |
 | **22** | Tailoring + polish | CV diff with provenance. README, docs, sample output, CI green. |
 | **23** | Demo + submit | Video recorded (healing in one unedited take). Repo public. Submitted with hours to spare. |

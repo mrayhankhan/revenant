@@ -1,5 +1,5 @@
 {
-  "name": "halflife",
+  "name": "revenant",
   "version": "0.1.0",
   "private": true,
   "description": "The job feed that knows which listings are already dead. Self-healing collectors on Bright Data Scraper Studio.",
@@ -13,10 +13,10 @@
   },
   "scripts": {
     "setup": "npm install && npm run db:push",
-    "db:push": "npm run db:push -w @halflife/core",
-    "collect": "npm run collect -w @halflife/core",
-    "verify": "npm run verify -w @halflife/core",
-    "audit:heal": "npm run audit:heal -w @halflife/core",
+    "db:push": "npm run db:push -w @revenant/core",
+    "collect": "npm run collect -w @revenant/core",
+    "verify": "npm run verify -w @revenant/core",
+    "audit:heal": "npm run audit:heal -w @revenant/core",
     "test": "vitest run",
     "typecheck": "tsc --build --pretty",
     "lint": "eslint . --max-warnings 0",
