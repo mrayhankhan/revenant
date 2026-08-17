@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 import type { CollectorTarget, Oracle } from '../collectors/base.js';
+import type { AtsPlatform } from '../discovery/slugs.js';
 import type { RawPosting } from '../schema/posting.js';
 
 /**
@@ -187,23 +188,60 @@ export const leverOracle: Oracle = {
  * confirm a slug before it is added to the target list, so collectors never
  * spend Bright Data credits on a URL that was a guess.
  */
+const ashbyResponse = z.object({ jobs: z.array(z.object({ id: z.string(), title: z.string() })) });
+
+function feedUrl(platform: AtsPlatform, slug: string): string {
+  switch (platform) {
+    case 'greenhouse':
+      return `https://boards-api.greenhouse.io/v1/boards/${slug}/jobs`;
+    case 'lever':
+      return `https://api.lever.co/v0/postings/${slug}?mode=json`;
+    case 'ashby':
+      return `https://api.ashbyhq.com/posting-api/job-board/${slug}`;
+  }
+}
+
+function parseFeed(platform: AtsPlatform, body: unknown): number | null {
+  switch (platform) {
+    case 'greenhouse': {
+      const parsed = greenhouseResponse.safeParse(body);
+      return parsed.success ? parsed.data.jobs.length : null;
+    }
+    case 'lever': {
+      const parsed = leverResponse.safeParse(body);
+      return parsed.success ? parsed.data.length : null;
+    }
+    case 'ashby': {
+      const parsed = ashbyResponse.safeParse(body);
+      return parsed.success ? parsed.data.jobs.length : null;
+    }
+  }
+}
+
+/**
+ * How many jobs a company's board holds, or null if the board does not exist.
+ *
+ * Confirms a discovered slug is real before a collector spends a Bright Data
+ * credit on it, and doubles as the open-role count shown during discovery.
+ */
+export async function boardSize(
+  platform: AtsPlatform,
+  slug: string,
+  signal?: AbortSignal,
+): Promise<number | null> {
+  try {
+    const body = await fetchJson(feedUrl(platform, slug), signal);
+    if (body === null) return null;
+    return parseFeed(platform, body);
+  } catch {
+    return null;
+  }
+}
+
 export async function boardExists(
-  platform: 'greenhouse' | 'lever',
+  platform: AtsPlatform,
   slug: string,
   signal?: AbortSignal,
 ): Promise<boolean> {
-  const url =
-    platform === 'greenhouse'
-      ? `https://boards-api.greenhouse.io/v1/boards/${slug}/jobs`
-      : `https://api.lever.co/v0/postings/${slug}?mode=json`;
-
-  try {
-    const body = await fetchJson(url, signal);
-    if (body === null) return false;
-    const parsed =
-      platform === 'greenhouse' ? greenhouseResponse.safeParse(body) : leverResponse.safeParse(body);
-    return parsed.success;
-  } catch {
-    return false;
-  }
+  return (await boardSize(platform, slug, signal)) !== null;
 }

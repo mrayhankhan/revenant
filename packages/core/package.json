@@ -12,6 +12,7 @@
     "build": "tsc --build",
     "db:push": "drizzle-kit push",
     "oracle:check": "tsx src/cli/oracle-check.ts",
+    "discover": "tsx src/cli/discover.ts",
     "collect": "tsx src/cli/collect.ts",
     "verify": "tsx src/cli/verify.ts",
     "audit:heal": "tsx src/cli/audit-heal.ts"
