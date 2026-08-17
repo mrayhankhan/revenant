@@ -66,6 +66,40 @@ async function fetchJson(url: string, signal?: AbortSignal): Promise<unknown | n
   return response.json();
 }
 
+/**
+ * Greenhouse returns job descriptions HTML-escaped — the `content` field holds
+ * `&lt;p&gt;…` rather than `<p>…`. Rendered as-is it shows its own markup as
+ * literal text, so the entities are resolved once here, at the boundary, rather
+ * than left for every consumer to rediscover.
+ */
+function decodeEntities(value: string): string {
+  const named: Record<string, string> = {
+    amp: '&',
+    lt: '<',
+    gt: '>',
+    quot: '"',
+    apos: "'",
+    nbsp: ' ',
+    hellip: '…',
+    mdash: '—',
+    ndash: '–',
+    rsquo: '’',
+    lsquo: '‘',
+    ldquo: '“',
+    rdquo: '”',
+  };
+
+  return value.replace(/&(#x?[0-9a-f]+|[a-z]+);/gi, (match, entity: string) => {
+    if (entity.startsWith('#')) {
+      const codePoint = entity[1]?.toLowerCase() === 'x'
+        ? Number.parseInt(entity.slice(2), 16)
+        : Number.parseInt(entity.slice(1), 10);
+      return Number.isFinite(codePoint) ? String.fromCodePoint(codePoint) : match;
+    }
+    return named[entity.toLowerCase()] ?? match;
+  });
+}
+
 function remotePolicyFrom(value: string | null | undefined): RawPosting['remotePolicy'] {
   switch (value?.toLowerCase()) {
     case 'remote':
@@ -130,7 +164,7 @@ export const greenhouseOracle: Oracle = {
       salaryCurrency: null,
       employmentType: null,
       postedAt: job.first_published ? new Date(job.first_published) : new Date(job.updated_at),
-      descriptionHtml: job.content ?? null,
+      descriptionHtml: job.content ? decodeEntities(job.content) : null,
       applyUrl: job.absolute_url,
     }));
   },
