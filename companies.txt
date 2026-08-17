@@ -1,0 +1,26 @@
+# Companies Revenant tracks.
+#
+# Each line resolves to a public ATS board via `npm run discover`. Slugs are
+# confirmed against the platform's own free feed before any collector loads the
+# page, so a wrong guess here costs nothing.
+#
+# Add freely — the pipeline is bounded by credits, not by this list.
+
+Stripe
+Vercel
+Ramp
+Anthropic
+Figma
+Notion
+Databricks
+Discord
+Reddit
+Duolingo
+Robinhood
+Instacart
+Airtable
+Asana
+Cloudflare
+Datadog
+Grammarly
+Coinbase

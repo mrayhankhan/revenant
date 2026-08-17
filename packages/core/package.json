@@ -5,24 +5,26 @@
   "type": "module",
   "exports": {
     ".": "./dist/index.js",
-    "./schema": "./dist/schema/index.js",
-    "./db": "./dist/db/index.js"
+    "./*": "./dist/*.js"
   },
   "scripts": {
     "build": "tsc --build",
+    "prepare": "tsc --build",
     "db:push": "drizzle-kit push",
     "oracle:check": "tsx src/cli/oracle-check.ts",
     "discover": "tsx src/cli/discover.ts",
+    "ingest": "tsx src/cli/ingest.ts",
     "collect": "tsx src/cli/collect.ts",
     "verify": "tsx src/cli/verify.ts",
     "audit:heal": "tsx src/cli/audit-heal.ts"
   },
   "dependencies": {
+    "@libsql/client": "^0.17.4",
+    "drizzle-kit": "^0.31.10",
     "drizzle-orm": "^0.38.2",
     "zod": "^3.24.1"
   },
   "devDependencies": {
     "tsx": "^4.19.2"
   }
-
 }

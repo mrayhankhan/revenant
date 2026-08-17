@@ -23,7 +23,9 @@
     "format": "prettier --write ."
   },
   "devDependencies": {
+    "@libsql/client": "^0.17.4",
     "@types/node": "^22.10.2",
+    "drizzle-orm": "^0.45.2",
     "eslint": "^9.17.0",
     "prettier": "^3.4.2",
     "typescript": "^5.7.2",

@@ -1,33 +1,33 @@
 import type { Metadata } from 'next';
+
 import './globals.css';
+import { NavLink } from './nav-link';
 
 export const metadata: Metadata = {
-  title: 'Revenant – Job Feed That Knows What\'s Dead',
-  description: 'Detect ghost jobs, track liveness, never apply to a role that was filled weeks ago.',
+  title: 'Revenant — the job feed that knows what is dead',
+  description:
+    'Ghost-job detection and self-healing collectors. Every listing carries a liveness score and the reason behind it.',
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({ children }: { children: React.ReactNode }): React.ReactElement {
   return (
     <html lang="en">
-      <body className="bg-gray-50 text-gray-900">
-        <nav className="border-b bg-white shadow-sm">
-          <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
-            <div className="flex items-center justify-between">
-              <h1 className="text-2xl font-bold tracking-tight">
-                <span className="text-live">◆</span> Revenant
-              </h1>
-              <div className="flex gap-6">
-                <a href="/feed" className="text-sm font-medium hover:text-live">
-                  Feed
-                </a>
-                <a href="/health" className="text-sm font-medium hover:text-live">
-                  Health
-                </a>
-              </div>
+      <body>
+        <nav className="sticky top-0 z-20 border-b border-[var(--border)] bg-[rgba(8,9,11,0.85)] backdrop-blur">
+          <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-3.5">
+            <a href="/" className="flex items-baseline gap-2.5">
+              <span className="text-[15px] font-semibold tracking-tight">Revenant</span>
+              <span className="hidden text-xs text-[var(--text-faint)] sm:inline">
+                the job feed that knows what is dead
+              </span>
+            </a>
+            <div className="flex items-center gap-6">
+              <NavLink href="/feed">Feed</NavLink>
+              <NavLink href="/health">Health</NavLink>
             </div>
           </div>
         </nav>
-        <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">{children}</main>
+        <main className="mx-auto max-w-6xl px-5 py-8">{children}</main>
       </body>
     </html>
   );

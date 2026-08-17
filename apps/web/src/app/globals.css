@@ -2,56 +2,272 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+ * Revenant's design layer.
+ *
+ * The product is a judgement about data you cannot see — whether a listing is
+ * still real. So the interface is built to make one number and one sentence
+ * legible at a glance, and to keep everything else quiet: near-monochrome
+ * surfaces, a single hue per verdict, and motion reserved for state changes so
+ * that when a field heals on screen, the movement means something.
+ */
+
+:root {
+  --bg: #08090b;
+  --surface: #0e1014;
+  --surface-raised: #14171d;
+  --border: #1d212a;
+  --border-strong: #2a2f3a;
+
+  --text: #e8eaf0;
+  --text-muted: #8b919f;
+  --text-faint: #5c6270;
+
+  --live: #34d399;
+  --aging: #fbbf24;
+  --stale: #64748b;
+  --ghost: #fb7185;
+
+  --accent: #7dd3fc;
+}
+
 * {
-  @apply box-border;
+  box-sizing: border-box;
 }
 
 html {
-  @apply scroll-smooth;
+  scroll-behavior: smooth;
 }
 
 body {
-  @apply font-sans antialiased;
+  background: var(--bg);
+  color: var(--text);
+  font-family:
+    ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Inter, Roboto, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings: 'cv02', 'cv03', 'cv04';
 }
 
-/* Liveness score badge */
-.liveness-badge {
-  @apply inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm font-semibold;
+/* Scores and counts are compared down a column, so they must not jitter. */
+.tabular {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
 }
 
-.liveness-badge.live {
-  @apply bg-green-100 text-green-800;
+.verdict-live {
+  color: var(--live);
+}
+.verdict-aging {
+  color: var(--aging);
+}
+.verdict-stale {
+  color: var(--stale);
+}
+.verdict-ghost {
+  color: var(--ghost);
 }
 
-.liveness-badge.aging {
-  @apply bg-amber-100 text-amber-800;
+/* ---- Panels ------------------------------------------------------------- */
+
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
 }
 
-.liveness-badge.stale {
-  @apply bg-gray-200 text-gray-800;
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.15rem 1.35rem;
+  display: block;
+  position: relative;
+  overflow: hidden;
+  transition:
+    border-color 140ms ease,
+    background 140ms ease,
+    transform 140ms ease;
 }
 
-.liveness-badge.ghost {
-  @apply bg-red-100 text-red-800;
+.card:hover {
+  border-color: var(--border-strong);
+  background: var(--surface-raised);
+  transform: translateY(-1px);
 }
 
-/* Decay bar */
-.decay-bar {
-  @apply h-1 w-full bg-gray-200;
+/*
+ * A hairline down the left edge carries the verdict, so the feed reads as a
+ * column of coloured ticks before any text is parsed.
+ */
+.card::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 2px;
+  background: var(--edge, transparent);
 }
 
-.decay-bar.live {
-  @apply bg-green-500;
+.card.is-ghost {
+  --edge: var(--ghost);
+}
+.card.is-stale {
+  --edge: var(--stale);
+}
+.card.is-aging {
+  --edge: var(--aging);
+}
+.card.is-live {
+  --edge: var(--live);
 }
 
-.decay-bar.aging {
-  @apply bg-amber-500;
+/* A proven-dead listing should look subtracted from the feed, not decorated. */
+.card.is-ghost {
+  opacity: 0.62;
+}
+.card.is-ghost:hover {
+  opacity: 1;
 }
 
-.decay-bar.stale {
-  @apply bg-gray-400;
+/* ---- Liveness meter ------------------------------------------------------ */
+
+.meter {
+  height: 3px;
+  width: 100%;
+  background: #171a21;
+  border-radius: 2px;
+  overflow: hidden;
 }
 
-.decay-bar.ghost {
-  @apply bg-red-600;
+.meter > span {
+  display: block;
+  height: 100%;
+  border-radius: 2px;
+  transition: width 400ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ---- Filter pills -------------------------------------------------------- */
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    border-color 120ms ease,
+    color 120ms ease,
+    background 120ms ease;
+}
+
+.pill:hover {
+  color: var(--text);
+  border-color: var(--border-strong);
+}
+
+.pill[data-active='true'] {
+  background: var(--surface-raised);
+  border-color: var(--border-strong);
+  color: var(--text);
+}
+
+.pill .count {
+  font-variant-numeric: tabular-nums;
+  color: var(--text-faint);
+  font-size: 0.75rem;
+}
+
+.pill[data-active='true'] .count {
+  color: var(--text-muted);
+}
+
+/* ---- Inputs -------------------------------------------------------------- */
+
+.field {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  padding: 0.55rem 0.85rem;
+  color: var(--text);
+  font-size: 0.875rem;
+  outline: none;
+  transition: border-color 120ms ease;
+}
+
+.field::placeholder {
+  color: var(--text-faint);
+}
+
+.field:focus {
+  border-color: var(--border-strong);
+}
+
+/* ---- Nav ----------------------------------------------------------------- */
+
+.nav-link {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  font-weight: 500;
+  padding: 0.35rem 0;
+  border-bottom: 1.5px solid transparent;
+  transition:
+    color 120ms ease,
+    border-color 120ms ease;
+}
+
+.nav-link:hover {
+  color: var(--text);
+}
+
+.nav-link[data-active='true'] {
+  color: var(--text);
+  border-bottom-color: var(--accent);
+}
+
+/* ---- Reason line --------------------------------------------------------- */
+
+/*
+ * The reason is the product. A bare score persuades nobody; "removed from the
+ * company's own board 12 days ago" is what a person acts on.
+ */
+.reason {
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+.reason.proof {
+  color: var(--ghost);
+  font-weight: 500;
+}
+
+.skeleton {
+  background: linear-gradient(90deg, #10131a 25%, #171b23 50%, #10131a 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+  border-radius: 8px;
+}
+
+@keyframes shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }

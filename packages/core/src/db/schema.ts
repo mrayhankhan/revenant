@@ -105,6 +105,66 @@ export const duplicates = sqliteTable(
   ],
 );
 
+/**
+ * Companies whose boards we track, resolved by `discovery/`.
+ *
+ * A board is confirmed against the platform's free feed before it is stored, so
+ * every row here is a real board rather than a guessed slug — collectors never
+ * spend a Bright Data credit discovering that a URL was wrong.
+ */
+export const companies = sqliteTable(
+  'companies',
+  {
+    slug: text('slug').primaryKey(),
+    name: text('name').notNull(),
+    platform: text('platform').notNull(), // greenhouse, lever, ashby
+    boardUrl: text('board_url').notNull(),
+    openRoles: integer('open_roles').notNull().default(0),
+    discoveredAt: integer('discovered_at', { mode: 'timestamp_ms' }).notNull(),
+  },
+  (t) => [index('companies_platform').on(t.platform)],
+);
+
+/** One row per collector invocation. Gives every field sample a run to belong to. */
+export const collectionRuns = sqliteTable(
+  'collection_runs',
+  {
+    id: text('id').primaryKey(),
+    collectorId: text('collector_id').notNull(),
+    companySlug: text('company_slug'),
+    startedAt: integer('started_at', { mode: 'timestamp_ms' }).notNull(),
+    finishedAt: integer('finished_at', { mode: 'timestamp_ms' }),
+    rowsReturned: integer('rows_returned').notNull().default(0),
+    rowsRejected: integer('rows_rejected').notNull().default(0),
+    error: text('error'),
+  },
+  (t) => [index('collection_runs_collector_id').on(t.collectorId, t.startedAt)],
+);
+
+/**
+ * Per-run fill rate for one field.
+ *
+ * `fieldBaselines` holds the rolling anchor; this holds each individual
+ * observation, which is what the health dashboard draws as a sparkline and what
+ * drift detection compares against the baseline.
+ */
+export const fieldSamples = sqliteTable(
+  'field_samples',
+  {
+    id: text('id').primaryKey(),
+    runId: text('run_id')
+      .notNull()
+      .references(() => collectionRuns.id, { onDelete: 'cascade' }),
+    collectorId: text('collector_id').notNull(),
+    field: text('field').notNull(),
+    filled: integer('filled').notNull(),
+    total: integer('total').notNull(),
+    verdict: text('verdict').notNull(), // healthy, degraded, broken, insufficient_data
+    observedAt: integer('observed_at', { mode: 'timestamp_ms' }).notNull(),
+  },
+  (t) => [index('field_samples_collector_field').on(t.collectorId, t.field, t.observedAt)],
+);
+
 export const tailorings = sqliteTable(
   'tailorings',
   {
