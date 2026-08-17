@@ -1,0 +1,57 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  @apply box-border;
+}
+
+html {
+  @apply scroll-smooth;
+}
+
+body {
+  @apply font-sans antialiased;
+}
+
+/* Liveness score badge */
+.liveness-badge {
+  @apply inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm font-semibold;
+}
+
+.liveness-badge.live {
+  @apply bg-green-100 text-green-800;
+}
+
+.liveness-badge.aging {
+  @apply bg-amber-100 text-amber-800;
+}
+
+.liveness-badge.stale {
+  @apply bg-gray-200 text-gray-800;
+}
+
+.liveness-badge.ghost {
+  @apply bg-red-100 text-red-800;
+}
+
+/* Decay bar */
+.decay-bar {
+  @apply h-1 w-full bg-gray-200;
+}
+
+.decay-bar.live {
+  @apply bg-green-500;
+}
+
+.decay-bar.aging {
+  @apply bg-amber-500;
+}
+
+.decay-bar.stale {
+  @apply bg-gray-400;
+}
+
+.decay-bar.ghost {
+  @apply bg-red-600;
+}

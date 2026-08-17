@@ -5,8 +5,8 @@
   "description": "The job feed that knows which listings are already dead. Self-healing collectors on Bright Data Scraper Studio.",
   "type": "module",
   "workspaces": [
-    "packages/*",
-    "apps/*"
+    "packages/core",
+    "apps/web"
   ],
   "engines": {
     "node": ">=22"
