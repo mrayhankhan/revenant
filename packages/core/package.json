@@ -1,4 +1,4 @@
-{
+﻿{
   "name": "@revenant/core",
   "version": "0.1.0",
   "private": true,
@@ -20,7 +20,7 @@
     "scraper:create": "tsx src/cli/scraper-create.ts",
     "collect": "tsx src/cli/collect.ts",
     "verify": "tsx src/cli/verify.ts",
-    "audit:heal": "tsx src/cli/audit-heal.ts"
+    "heal": "tsx src/cli/heal.ts"
   },
   "dependencies": {
     "@brightdata/cli": "^0.3.5",
@@ -33,3 +33,4 @@
     "tsx": "^4.19.2"
   }
 }
+

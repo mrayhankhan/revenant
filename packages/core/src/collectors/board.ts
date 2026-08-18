@@ -1,6 +1,7 @@
 import { runScraper } from '../brightdata/cli.js';
 import { bestSalary } from '../normalize/salary.js';
 import { greenhouseOracle, leverOracle } from '../oracle/ats.js';
+import { chaosOracle } from '../oracle/chaos.js';
 import { rawPostingSchema } from '../schema/posting.js';
 import type { RawPosting } from '../schema/posting.js';
 import type { Collector, CollectRun, CollectorTarget, Oracle, SourceId } from './base.js';
@@ -46,7 +47,9 @@ interface BoardConfig {
   collectorEnvVar: string;
 }
 
-const CONFIGS: Record<'greenhouse' | 'lever', BoardConfig> = {
+export type BoardPlatform = 'greenhouse' | 'lever' | 'chaos';
+
+const CONFIGS: Record<BoardPlatform, BoardConfig> = {
   greenhouse: {
     id: 'greenhouse',
     label: 'Greenhouse board (HTML)',
@@ -58,6 +61,15 @@ const CONFIGS: Record<'greenhouse' | 'lever', BoardConfig> = {
     label: 'Lever board (HTML)',
     oracle: leverOracle,
     collectorEnvVar: 'BRIGHTDATA_COLLECTOR_LEVER',
+  },
+  // A board we control, so a redesign can be triggered on demand instead of
+  // waited for. It publishes its own structured feed, so heals against it are
+  // graded through exactly the same path as heals against a real platform.
+  chaos: {
+    id: 'chaos',
+    label: 'Chaos target (HTML)',
+    oracle: chaosOracle,
+    collectorEnvVar: 'BRIGHTDATA_COLLECTOR_CHAOS',
   },
 };
 
@@ -188,8 +200,8 @@ export function normaliseBoardRow(raw: unknown, fallbackUrl: string): RawPosting
   return parsed.success ? parsed.data : null;
 }
 
-/** A collector for one ATS platform's rendered boards. */
-export function boardCollector(platform: 'greenhouse' | 'lever'): Collector {
+/** A collector for one platform's rendered boards. */
+export function boardCollector(platform: BoardPlatform): Collector {
   const config = CONFIGS[platform];
 
   return {

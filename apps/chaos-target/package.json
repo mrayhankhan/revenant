@@ -1,0 +1,13 @@
+{
+  "name": "@revenant/chaos-target",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "A job board we can redesign on command, so self-healing can be demonstrated rather than described.",
+  "scripts": {
+    "dev": "tsx dev.ts"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.2"
+  }
+}
