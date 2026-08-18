@@ -14,6 +14,7 @@
 import { appendFile, readFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 
+import '../env.js';
 import { createScraper, hasCredentials } from '../brightdata/cli.js';
 import { BOARD_FIELD_SPEC } from '../collectors/board.js';
 
