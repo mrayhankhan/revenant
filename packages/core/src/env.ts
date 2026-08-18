@@ -43,7 +43,12 @@ export function loadEnv(): void {
   const path = join(workspaceRoot(process.cwd()), '.env');
   if (!existsSync(path)) return;
 
-  for (const rawLine of readFileSync(path, 'utf8').split('\n')) {
+  // Editors on Windows routinely save .env with a byte order mark, which would
+  // otherwise become part of the first variable's name — the key would be
+  // present in the file and invisible to the process.
+  const contents = readFileSync(path, 'utf8').replace(/^﻿/, '');
+
+  for (const rawLine of contents.split('\n')) {
     const line = rawLine.trim();
     if (line.length === 0 || line.startsWith('#')) continue;
 

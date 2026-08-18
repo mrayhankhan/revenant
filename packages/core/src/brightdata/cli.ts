@@ -58,11 +58,28 @@ export interface BrightDataOptions {
 
 const DEFAULT_TIMEOUT_SECONDS = 900;
 
-function baseArgs(options: BrightDataOptions): string[] {
-  const args = [cliEntry()];
+function baseArgs(): string[] {
+  return [cliEntry()];
+}
+
+/**
+ * The API key is handed to the child through the environment, never as `-k` on
+ * the command line.
+ *
+ * Argv is visible to anything that can list processes, and it is echoed back in
+ * this module's own error messages and stack traces — a failed run was printing
+ * the key into the log. An environment variable is read only by the child.
+ */
+function childEnv(options: BrightDataOptions): NodeJS.ProcessEnv {
   const key = options.apiKey ?? process.env['BRIGHTDATA_API_KEY'];
-  if (key) args.push('-k', key);
-  return args;
+  return key ? { ...process.env, BRIGHTDATA_API_KEY: key } : process.env;
+}
+
+/** Strip anything key-shaped before a message reaches a log or an exception. */
+function redact(text: string, options: BrightDataOptions): string {
+  const key = options.apiKey ?? process.env['BRIGHTDATA_API_KEY'];
+  const withoutKey = key ? text.split(key).join('«redacted»') : text;
+  return withoutKey.replace(/(-k|--api-key)\s+\S+/g, '$1 «redacted»');
 }
 
 async function invoke(
@@ -73,8 +90,9 @@ async function invoke(
   const command = `bdata ${args.join(' ')}`;
 
   try {
-    const { stdout } = await run(process.execPath, [...baseArgs(options), ...args], {
+    const { stdout } = await run(process.execPath, [...baseArgs(), ...args], {
       timeout,
+      env: childEnv(options),
       // Scraper output for a large board comfortably exceeds the default buffer.
       maxBuffer: 64 * 1024 * 1024,
       windowsHide: true,
@@ -86,7 +104,16 @@ async function invoke(
       ? String((cause as { stderr: unknown }).stderr)
       : '';
     const message = cause instanceof Error ? cause.message : 'unknown failure';
-    throw new BrightDataError(`${command} failed: ${message}`, command, stderr);
+
+    // Redacted on the way out as a second line of defence: the CLI echoes the
+    // invocation back in its own errors, and these strings end up in logs.
+    throw new BrightDataError(
+      redact(`${command} failed: ${message}`, options),
+      redact(command, options),
+      // Generation logs run to tens of thousands of polling lines; the tail is
+      // where the actual failure is.
+      redact(stderr, options).slice(-2000),
+    );
   }
 }
 
