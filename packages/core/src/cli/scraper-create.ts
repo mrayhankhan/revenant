@@ -11,7 +11,7 @@
  *
  * Generation takes 5–15 minutes on a real board. That is normal, not a hang.
  */
-import { appendFile, readFile } from 'node:fs/promises';
+import { appendFile, readFile, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 
 import '../env.js';
@@ -27,27 +27,39 @@ const ENV_VAR: Record<string, string> = {
 };
 
 /**
- * Append the new collector id to .env, but never rewrite an existing one —
- * silently replacing a working collector id is not a thing a script should do
- * on its own.
+ * Record the new collector id in .env.
+ *
+ * Fills a blank placeholder — `.env.example` ships these keys empty — but never
+ * overwrites a value that is already there: silently replacing a working
+ * collector id is not something a script should decide on its own.
  */
 async function recordCollectorId(envVar: string, collectorId: string): Promise<void> {
   const path = '.env';
   const line = `${envVar}=${collectorId}`;
 
-  if (existsSync(path)) {
-    const contents = await readFile(path, 'utf8');
-    if (new RegExp(`^${envVar}=`, 'm').test(contents)) {
-      console.log(`\n  ${envVar} is already set in .env. Update it by hand if you meant to replace it:`);
-      console.log(`  ${line}`);
-      return;
-    }
-    const separator = contents.endsWith('\n') || contents.length === 0 ? '' : '\n';
-    await appendFile(path, `${separator}${line}\n`);
-  } else {
-    await appendFile(path, `${line}\n`);
+  if (!existsSync(path)) {
+    await writeFile(path, `${line}\n`);
+    console.log(`\n  wrote ${envVar} to .env`);
+    return;
   }
 
+  const contents = await readFile(path, 'utf8');
+  const existing = new RegExp(`^${envVar}=(.*)$`, 'm').exec(contents);
+
+  if (existing && (existing[1] ?? '').trim().length > 0) {
+    console.log(`\n  ${envVar} already holds a value. Update it by hand if you meant to replace it:`);
+    console.log(`  ${line}`);
+    return;
+  }
+
+  if (existing) {
+    await writeFile(path, contents.replace(existing[0], line));
+    console.log(`\n  set ${envVar} in .env`);
+    return;
+  }
+
+  const separator = contents.length === 0 || contents.endsWith('\n') ? '' : '\n';
+  await appendFile(path, `${separator}${line}\n`);
   console.log(`\n  wrote ${envVar} to .env`);
 }
 

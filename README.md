@@ -89,19 +89,46 @@ deliberate architectural decision with two reasons:
 **A stable API cannot break.** A pipeline built on one has nothing to self-heal
 and no way to demonstrate that it does.
 
-**The rendered page is strictly richer.** Measured across 3,509 postings from 15
-company boards:
+**The rendered page is strictly richer** — and this is measured, not asserted.
+The same field, from the same company, by both routes:
 
 ```
-salary advertised in the structured ATS feed:   0 / 3,509
+compensation via the structured ATS feed     0 / 3,509     (0%)
+compensation via Scraper Studio + parsing   43 / 50       (86%)
 ```
 
-Greenhouse's feed carries **no compensation field whatsoever**, while
-pay-transparency law puts salary ranges in the *description prose* of many of
-those same postings. Extracting it from the page is the only way to reach it.
+Greenhouse's feed carries **no compensation field whatsoever**. Pay-transparency
+law still requires the range to appear in the posting, so it lands in the
+description prose — `"The annual salary range for this position is $232,000 -
+$348,000."` — where only a page scrape can reach it.
+
+Recovered ranges from one real run, currency and all:
+
+```
+USD 230,000 – 340,000     USD 152,000 – 209,000     AUD 388,000 – 524,000
+```
 
 The JSON feeds stay on as an **oracle** — never a data source. They grade the
 scrape and answer whether a role still exists.
+
+### Graded against ground truth
+
+Output of `npm run collect` against Vercel's board, scored field-by-field
+against Greenhouse's own feed:
+
+```
+paired 50, unmatched 0
+  title            100.0%
+  location         100.0%
+  applyUrl         100.0%
+  descriptionHtml  100.0%
+  postedAt           0.0%   ← the board index does not display dates
+  overall           80.0%
+```
+
+`postedAt` is the honest gap: that value exists on individual job pages, not on
+the index this collector reads. It is reported rather than hidden, because a
+metric you can only pass is not a metric.
 
 ### The field spec
 
@@ -237,8 +264,12 @@ postings                 3,509        across 15 company boards
   stale                  1,080
   ghost                      0        ← see below
 duplicates collapsed       108
-salary in structured feed  0/3,509
-tests                        93       in 8 files
+tests                       111       in 9 files
+
+Scraper Studio, one real run against Vercel's board:
+  rows returned               50       0 rejected
+  salary recovered         43/50       vs 0/3,509 through the structured feed
+  accuracy vs ground truth    80%      100% on every field the index displays
 ```
 
 **Why `ghost` is 0, and why that is correct.** A ghost requires a source that

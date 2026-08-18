@@ -1,4 +1,5 @@
 import { runScraper } from '../brightdata/cli.js';
+import { bestSalary } from '../normalize/salary.js';
 import { greenhouseOracle, leverOracle } from '../oracle/ats.js';
 import { rawPostingSchema } from '../schema/posting.js';
 import type { RawPosting } from '../schema/posting.js';
@@ -123,7 +124,7 @@ export function normaliseBoardRow(raw: unknown, fallbackUrl: string): RawPosting
   if (typeof raw !== 'object' || raw === null) return null;
   const row = raw as Record<string, unknown>;
 
-  const applyUrl = pick(row, 'apply_url', 'applyUrl', 'url', 'link', 'job_url');
+  const applyUrl = pick(row, 'apply_url', 'applyUrl', 'apply_link', 'url', 'link', 'job_url');
   const sourceUrl = applyUrl ?? fallbackUrl;
   const location = pick(row, 'location', 'job_location', 'city', 'office');
 
@@ -131,25 +132,55 @@ export function normaliseBoardRow(raw: unknown, fallbackUrl: string): RawPosting
   // — so fall back to the resolved location rather than re-reading raw keys,
   // which would miss whichever alias supplied it.
   const remotePolicy =
-    normaliseRemote(pick(row, 'remote_policy', 'remotePolicy', 'workplace_type', 'work_model')) ??
-    normaliseRemote(location);
+    normaliseRemote(
+      pick(row, 'remote_policy', 'remotePolicy', 'workplace_type', 'work_arrangement', 'work_model'),
+    ) ?? normaliseRemote(location);
+
+  const description = pick(
+    row,
+    'description_html',
+    'descriptionHtml',
+    'job_description',
+    'description',
+    'content',
+  );
+
+  /*
+   * Compensation is the field this project exists to recover.
+   *
+   * Boards fill their salary field with a sentence — "Competitive compensation
+   * package, including equity" was returned for 44 of 50 Vercel postings — while
+   * pay-transparency law puts the actual range in the body text. `bestSalary`
+   * prefers the dedicated field and falls back to the description, which is how
+   * a field the ATS API reports as 0/3,509 becomes populated.
+   */
+  const explicitMin = pickNumber(row, 'salary_min', 'salaryMin', 'min_salary', 'compensation_min');
+  const explicitMax = pickNumber(row, 'salary_max', 'salaryMax', 'max_salary', 'compensation_max');
+  const parsedSalary =
+    explicitMin === null || explicitMax === null
+      ? bestSalary(pick(row, 'salary_range', 'salaryRange', 'compensation', 'pay'), description)
+      : { min: explicitMin, max: explicitMax, currency: null };
 
   const candidate = {
-    sourceKey:
-      pick(row, 'id', 'job_id', 'requisition_id', 'sourceKey') ?? applyUrl ?? crypto.randomUUID(),
+    // A row with no id and no link cannot be told apart from its neighbours, and
+    // a random id would make every row unpairable against ground truth while
+    // looking perfectly healthy. Rejecting is the honest outcome.
+    sourceKey: pick(row, 'id', 'job_id', 'requisition_id', 'sourceKey') ?? applyUrl,
     sourceUrl,
     title: pick(row, 'title', 'job_title', 'name', 'position'),
     company: pick(row, 'company', 'company_name', 'employer'),
     location,
     remotePolicy,
-    salaryMin: pickNumber(row, 'salary_min', 'salaryMin', 'min_salary', 'compensation_min'),
-    salaryMax: pickNumber(row, 'salary_max', 'salaryMax', 'max_salary', 'compensation_max'),
-    salaryCurrency: pick(row, 'salary_currency', 'salaryCurrency', 'currency')?.slice(0, 3) ?? null,
+    salaryMin: parsedSalary.min,
+    salaryMax: parsedSalary.max,
+    salaryCurrency:
+      pick(row, 'salary_currency', 'salaryCurrency', 'currency')?.slice(0, 3) ??
+      parsedSalary.currency,
     employmentType: normaliseEmployment(
       pick(row, 'employment_type', 'employmentType', 'job_type', 'commitment'),
     ),
     postedAt: toDate(pick(row, 'posted_at', 'postedAt', 'date_posted', 'published_at')),
-    descriptionHtml: pick(row, 'description_html', 'descriptionHtml', 'description', 'content'),
+    descriptionHtml: description,
     applyUrl,
   };
 

@@ -83,8 +83,42 @@ describe('normaliseBoardRow', () => {
     expect(posting?.descriptionHtml).toBeNull();
   });
 
-  it('falls back to the board url when a row carries no link', () => {
-    expect(normaliseBoardRow({ title: 'Engineer' }, URL)?.sourceUrl).toBe(URL);
+  /*
+   * A row with neither an id nor a link cannot be told apart from its
+   * neighbours. An earlier version minted a random id for these, which let
+   * every row through looking healthy while making all of them unpairable
+   * against ground truth — a real run reported "paired 0, unmatched 1" because
+   * fifty distinct postings had collapsed onto one join key. Rejecting the row
+   * surfaces the problem instead of hiding it.
+   */
+  it('rejects a row with no id and no link rather than inventing an identity', () => {
+    expect(normaliseBoardRow({ title: 'Engineer' }, URL)).toBeNull();
+  });
+
+  it('uses the apply link as the identity when no explicit id is present', () => {
+    const posting = normaliseBoardRow(
+      { title: 'Engineer', apply_link: 'https://job-boards.greenhouse.io/acme/jobs/77' },
+      URL,
+    );
+
+    expect(posting?.sourceKey).toBe('https://job-boards.greenhouse.io/acme/jobs/77');
+    expect(posting?.applyUrl).toBe('https://job-boards.greenhouse.io/acme/jobs/77');
+  });
+
+  it('recovers salary from description prose when the salary field is boilerplate', () => {
+    const posting = normaliseBoardRow(
+      {
+        job_title: 'Software Engineer, Agent',
+        apply_link: 'https://job-boards.greenhouse.io/vercel/jobs/5704320004',
+        salary_range: 'Competitive compensation package, including equity',
+        job_description: 'The annual salary range for this position is $232,000 - $348,000.',
+      },
+      URL,
+    );
+
+    expect(posting?.salaryMin).toBe(232_000);
+    expect(posting?.salaryMax).toBe(348_000);
+    expect(posting?.salaryCurrency).toBe('USD');
   });
 
   // A coerced row would read as a healthy extraction and mask the breakage.
