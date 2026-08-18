@@ -23,6 +23,7 @@
     "audit:heal": "tsx src/cli/audit-heal.ts"
   },
   "dependencies": {
+    "@brightdata/cli": "^0.3.5",
     "@libsql/client": "^0.17.4",
     "drizzle-kit": "^0.31.10",
     "drizzle-orm": "^0.38.2",

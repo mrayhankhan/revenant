@@ -1,7 +1,25 @@
 import { execFile } from 'node:child_process';
+import { createRequire } from 'node:module';
+import { dirname, join } from 'node:path';
 import { promisify } from 'node:util';
 
 const run = promisify(execFile);
+
+/**
+ * Absolute path to the CLI's entry script.
+ *
+ * Resolved from the installed package rather than shelling out to `npx`. On
+ * Windows `npx` is `npx.cmd`, which Node refuses to launch through `execFile`
+ * without a shell — a deliberate guard against command injection. Enabling the
+ * shell would work and would also put the scraper description, which is free
+ * text, onto a command line the shell parses. Running the entry script under
+ * `process.execPath` sidesteps both problems and pins the version we installed.
+ */
+function cliEntry(): string {
+  const require = createRequire(import.meta.url);
+  const manifest = require.resolve('@brightdata/cli/package.json');
+  return join(dirname(manifest), 'dist', 'index.js');
+}
 
 /**
  * Typed wrapper over the Bright Data CLI.
@@ -41,7 +59,7 @@ export interface BrightDataOptions {
 const DEFAULT_TIMEOUT_SECONDS = 900;
 
 function baseArgs(options: BrightDataOptions): string[] {
-  const args = ['-y', '-p', '@brightdata/cli', 'bdata'];
+  const args = [cliEntry()];
   const key = options.apiKey ?? process.env['BRIGHTDATA_API_KEY'];
   if (key) args.push('-k', key);
   return args;
@@ -55,7 +73,7 @@ async function invoke(
   const command = `bdata ${args.join(' ')}`;
 
   try {
-    const { stdout } = await run('npx', [...baseArgs(options), ...args], {
+    const { stdout } = await run(process.execPath, [...baseArgs(options), ...args], {
       timeout,
       // Scraper output for a large board comfortably exceeds the default buffer.
       maxBuffer: 64 * 1024 * 1024,
