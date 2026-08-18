@@ -14,6 +14,9 @@
     "oracle:check": "tsx src/cli/oracle-check.ts",
     "discover": "tsx src/cli/discover.ts",
     "ingest": "tsx src/cli/ingest.ts",
+    "db:stats": "tsx src/cli/db-stats.ts",
+    "db:reset": "tsx src/cli/db-reset.ts",
+    "scraper:create": "tsx src/cli/scraper-create.ts",
     "collect": "tsx src/cli/collect.ts",
     "verify": "tsx src/cli/verify.ts",
     "audit:heal": "tsx src/cli/audit-heal.ts"
