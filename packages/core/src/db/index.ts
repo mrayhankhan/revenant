@@ -43,8 +43,15 @@ function workspaceRoot(start: string): string {
   }
 }
 
-/** Committed sample used when the working database is not present. */
-const SNAPSHOT_RELATIVE_PATH = 'data/demo.db';
+/**
+ * Committed samples used when the working database is not present.
+ *
+ * Two locations because the deploy root is the web app, not the repository:
+ * Vercel uploads `apps/web` and everything above it is out of reach, so the
+ * snapshot has to sit inside the app as well as at the workspace root where the
+ * CLIs expect it.
+ */
+const SNAPSHOT_RELATIVE_PATHS = ['data/demo.db', 'apps/web/data/demo.db'];
 
 /**
  * Absolute `file:` URL for the database, regardless of the current directory.
@@ -66,8 +73,10 @@ export function databaseUrl(): string {
   const working = join(root, raw);
   if (existsSync(working)) return `file:${working}`;
 
-  const snapshot = join(root, SNAPSHOT_RELATIVE_PATH);
-  if (existsSync(snapshot)) return `file:${snapshot}`;
+  for (const candidate of SNAPSHOT_RELATIVE_PATHS) {
+    const snapshot = join(root, candidate);
+    if (existsSync(snapshot)) return `file:${snapshot}`;
+  }
 
   return `file:${working}`;
 }

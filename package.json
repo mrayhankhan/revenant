@@ -5,31 +5,33 @@
   "description": "The job feed that knows which listings are already dead. Self-healing collectors on Bright Data Scraper Studio.",
   "type": "module",
   "workspaces": [
-    "packages/core",
-    "apps/web"
+    "packages/*",
+    "apps/*"
   ],
   "engines": {
     "node": ">=22"
   },
   "scripts": {
-    "setup": "npm install && npm run db:push",
+    "setup": "npm install && npm run db:push -w @revenant/core",
+    "dev": "npm run dev -w @revenant/web",
+    "build": "npm run build -w @revenant/core && npm run build -w @revenant/web",
     "db:push": "npm run db:push -w @revenant/core",
+    "discover": "npm run discover -w @revenant/core",
+    "ingest": "npm run ingest -w @revenant/core",
     "collect": "npm run collect -w @revenant/core",
-    "verify": "npm run verify -w @revenant/core",
-    "audit:heal": "npm run audit:heal -w @revenant/core",
+    "heal": "npm run heal -w @revenant/core",
+    "snapshot": "npm run snapshot -w @revenant/core",
+    "env:check": "npm run env:check -w @revenant/core",
     "test": "vitest run",
-    "typecheck": "tsc --build --pretty",
-    "lint": "eslint . --max-warnings 0",
     "format": "prettier --write ."
   },
   "devDependencies": {
     "@libsql/client": "^0.17.4",
     "@types/node": "^22.10.2",
     "drizzle-orm": "^0.45.2",
-    "eslint": "^9.17.0",
+    "next": "^15.0.0",
     "prettier": "^3.4.2",
     "typescript": "^5.7.2",
-    "typescript-eslint": "^8.18.1",
     "vitest": "^2.1.8"
   }
 }

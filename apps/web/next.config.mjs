@@ -19,8 +19,8 @@ const config = {
    * that connect to a database which is not there.
    */
   outputFileTracingIncludes: {
-    '/api/**': ['../../data/demo.db'],
-    '/': ['../../data/demo.db'],
+    '/api/**': ['data/demo.db'],
+    '/': ['data/demo.db'],
   },
 };
 

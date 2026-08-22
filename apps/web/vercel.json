@@ -1,12 +1,4 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "cd ../.. && npm install && npm run build -w @revenant/core && npm run build -w @revenant/web",
-  "installCommand": "echo skip",
-  "outputDirectory": ".next",
-  "framework": "nextjs",
-  "functions": {
-    "src/app/api/**/*": {
-      "includeFiles": "../../data/demo.db"
-    }
-  }
+  "framework": "nextjs"
 }
