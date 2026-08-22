@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 import { BrightDataError, hasCredentials } from './cli.js';
 
+/** Obviously synthetic. Never put a real credential in a fixture. */
 const KEY = '00000000-0000-4000-8000-000000000000';
 
 describe('credentials', () => {
