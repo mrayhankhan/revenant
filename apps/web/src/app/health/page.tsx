@@ -66,7 +66,9 @@ function Stat({
 }: {
   label: string;
   value: string;
-  hint?: string;
+  // Explicitly `| undefined`: the repo runs with exactOptionalPropertyTypes, so
+  // "may be omitted" and "may be passed as undefined" are different contracts.
+  hint?: string | undefined;
 }): React.ReactElement {
   return (
     <div className="panel px-5 py-4">

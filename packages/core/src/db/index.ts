@@ -43,16 +43,33 @@ function workspaceRoot(start: string): string {
   }
 }
 
-/** Absolute `file:` URL for the database, regardless of the current directory. */
+/** Committed sample used when the working database is not present. */
+const SNAPSHOT_RELATIVE_PATH = 'data/demo.db';
+
+/**
+ * Absolute `file:` URL for the database, regardless of the current directory.
+ *
+ * Falls back to the committed snapshot when the working database is absent —
+ * which is the case on a deployment, and on a fresh clone before anything has
+ * been ingested. Both should show real postings rather than an empty feed.
+ */
 export function databaseUrl(): string {
   const configured = process.env['DATABASE_URL'];
 
   if (configured && !configured.startsWith('file:')) return configured;
 
+  const root = workspaceRoot(process.cwd());
   const raw = configured?.slice('file:'.length) ?? DEFAULT_RELATIVE_PATH;
+
   if (isAbsolute(raw)) return `file:${raw}`;
 
-  return `file:${join(workspaceRoot(process.cwd()), raw)}`;
+  const working = join(root, raw);
+  if (existsSync(working)) return `file:${working}`;
+
+  const snapshot = join(root, SNAPSHOT_RELATIVE_PATH);
+  if (existsSync(snapshot)) return `file:${snapshot}`;
+
+  return `file:${working}`;
 }
 
 let cached: ReturnType<typeof drizzle<typeof schema>> | undefined;
