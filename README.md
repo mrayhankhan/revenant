@@ -161,6 +161,44 @@ npm run collect       -w @revenant/core -- greenhouse <board-url>
 
 ---
 
+## Matching a CV, without a model
+
+Paste a CV at `/match` and every live posting is scored against it. Each result
+names the skills it matched and the ones the posting asked for that the CV does
+not mention:
+
+> **[69] Robinhood — Senior Software Developer, DevX**
+> Matches your Kubernetes, Python and CI/CD.
+> Asks for Terraform and Go, not mentioned on your CV.
+
+Matching is a set intersection over a curated skill vocabulary, not an embedding
+search. That is a deliberate trade:
+
+- **It can show its work.** "This posting asks for Kubernetes; your CV does not
+  mention it" is checkable by the person reading it. A similarity score is not,
+  and they are being asked to act on it.
+- **It is deterministic**, so the score can be tested and cannot drift.
+- **It costs nothing per posting** — 1,500 postings scored per request, in
+  milliseconds, with no API key required.
+
+The cost is recall: a skill outside the vocabulary is invisible. That is the
+right way to fail here — a missed match is a smaller harm than a confident wrong
+one.
+
+Coverage is weighted by how much a posting actually named. Ratio alone put a
+"Sr. Engagement Manager" at the top of a backend engineer's results on a single
+mention of AWS, because 1/1 beats 8/8. Postings naming few skills are now pulled
+toward neutral, and that role fell from 90 to 62.
+
+Ghosts are excluded before ranking. A perfect skill match for a role filled in
+April is precisely what this project exists to keep out of your list.
+
+**Tailoring suggestions quote the sentence that motivates them**, so a change can
+be judged rather than trusted — and Revenant never submits anything on your
+behalf.
+
+→ [`match/resume.ts`](packages/core/src/match/resume.ts)
+
 ## Ghost detection
 
 A ghost job is *live* but not *real*. Aggregators cannot tell, because the only
@@ -264,7 +302,7 @@ postings                 3,509        across 15 company boards
   stale                  1,080
   ghost                      0        ← see below
 duplicates collapsed       108
-tests                       111       in 9 files
+tests                       135       in 11 files
 
 Scraper Studio, one real run against Vercel's board:
   rows returned               50       0 rejected
