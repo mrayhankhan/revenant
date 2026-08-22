@@ -23,6 +23,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }):
             </a>
             <div className="flex items-center gap-6">
               <NavLink href="/feed">Feed</NavLink>
+              <NavLink href="/match">Match</NavLink>
               <NavLink href="/health">Health</NavLink>
             </div>
           </div>
