@@ -434,6 +434,13 @@ body::before {
   }
 }
 
+/* The hand-drawn underline draws itself in, once, under the phrase it marks. */
+@keyframes underline {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
 /* ---- Loading ------------------------------------------------------------- */
 
 .skeleton {
