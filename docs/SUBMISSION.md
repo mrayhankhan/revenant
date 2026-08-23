@@ -14,7 +14,176 @@ All four are in `docs/screenshots/` and live in the README.
 
 ---
 
-## 2a. Short version — 90 seconds
+## 2a. The 2.5-minute version — use this one
+
+### Before you record
+
+**Screen layout.** Split the screen down the middle for the last section:
+browser on the left, terminal on the right. The viewer has to see the page change
+*and* the scraper react to it, at the same time, or the whole thing is just
+scrolling text.
+
+**Make the terminal readable.** Font size 18 or larger. Nobody can read a 12pt
+terminal on a phone, and this is the part that has to be believed.
+
+**Two commands ready to paste.** These flip the board between designs in about
+two seconds — same URL, completely different HTML. No waiting, no cut.
+
+```bash
+# Original design
+npx vercel alias set revenant-chaos-jld8rwkq2-rays-projects-6f560386.vercel.app revenant-chaos.vercel.app
+
+# Redesigned
+npx vercel alias set revenant-chaos-7y9in19er-rays-projects-6f560386.vercel.app revenant-chaos.vercel.app
+```
+
+Start on the original design. Run the flip when the script says.
+
+**Neither of the two winners I looked at showed self-healing happening.** SRE
+Sentinel won a FutureStack prize for automated self-healing and its README
+explains it entirely in ASCII diagrams. If you actually show a break and a
+repair, you are doing the thing they only described.
+
+---
+
+### 0:00 (20s) — The problem
+
+**Show:** landing page, top.
+
+> "Everyone has applied to a job that was already filled.
+>
+> You check the date. It says two days ago. So you spend an hour on the
+> application — but the company filled that role in March and just re-posted it.
+> The clock reset.
+>
+> I collected eleven thousand postings to see how often that happens. A hundred
+> and seventeen of them look under two weeks old and are re-posts of something
+> over a month old. One role has been re-listed across six and a half years."
+
+---
+
+### 0:20 (30s) — Why I scrape companies, not LinkedIn
+
+**Show:** scroll slowly through the story chapters on the landing page.
+
+> "Here's the part that makes this work.
+>
+> LinkedIn and Indeed are aggregators. They hold a *copy* of a job posting, and
+> nobody tells them when it's taken down.
+>
+> So I don't scrape them. I scrape the companies directly — Greenhouse, Lever and
+> Ashby, the systems companies actually run hiring on. That's the source, not a
+> copy.
+>
+> Which means I can do something an aggregator can't: if a role is gone from the
+> company's own board but still listed elsewhere, that isn't a guess. That's the
+> company contradicting the listing."
+
+---
+
+### 0:50 (35s) — The product
+
+**Show:** `/feed`. Filter to **Engineering**. Hover a card so it flips over.
+
+> "Five thousand live postings, ninety-six company boards, all collected with
+> Bright Data Scraper Studio.
+>
+> Filter by function, level, remote. Hover a card and it turns over.
+>
+> Every job has a score — and underneath it, the reason for that score."
+
+**Show:** click **Stale**, open a card.
+
+> "Open a hundred and seven days. Re-posted twice. That's why."
+
+**Show:** `/match`, click **Use a sample CV**, expand one "what to add".
+
+> "Paste a CV and every job gets scored against it. No AI model — it names the
+> skills that matched, and what the job asks for that your CV doesn't mention,
+> quoting the sentence that says so.
+>
+> And it stops there. It never applies for you."
+
+---
+
+### 1:25 (35s) — Scraper Studio, and the number that matters
+
+**Show:** terminal, full width. Run:
+```bash
+npm run collect -w @revenant/core -- greenhouse https://job-boards.greenhouse.io/vercel
+```
+
+> "I described the data I wanted in one paragraph of plain English. No CSS
+> selectors. Scraper Studio built the scraper — and the same paragraph works on
+> all three platforms, which have completely different page layouts.
+>
+> Now watch the salary field."
+
+**Wait for the bars. Let them fill.**
+
+> "These companies publish a JSON API. It has no salary field at all — zero out
+> of eleven thousand postings.
+>
+> But pay-transparency law says the range has to appear in the posting. So it's
+> there, buried in the description text, where an API can never reach it.
+>
+> Scraper Studio reads it off the page. Forty-three of fifty. Zero, to
+> eighty-six percent.
+>
+> That's why I scrape the rendered page instead of calling the API."
+
+---
+
+### 2:00 (30s) — Self-healing, live
+
+**Now switch to split screen: browser left, terminal right.**
+
+**Browser:** `https://revenant-chaos.vercel.app` — the original design.
+
+> "Last part. This is a job board I control, so I can break it on purpose."
+
+**Terminal:** run the heal command. It reports 60 rows, healthy.
+
+> "The scraper reads it fine. Sixty jobs."
+
+**Now paste the flip command. Then refresh the browser — the page visibly changes.**
+
+> "Now the company redesigns their site. Same URL — every class renamed, the
+> salary moved and split apart."
+
+**Terminal:** run the heal command again.
+
+> "Zero rows. The scraper is broken.
+>
+> Scraper Studio proposes a fix — and I don't auto-approve it. A bad fix can grab
+> the wrong element and refill the field with the wrong value. It looks perfectly
+> healthy and the data is wrong. So the fix gets checked against the company's own
+> feed first."
+
+**Let the output land.**
+
+> "Sixty rows back. And it recovered the job title, which the original scraper
+> never managed to extract at all."
+
+---
+
+### 2:30 (5s) — Close
+
+**Show:** the feed again.
+
+> "Public job data in. Human decision out. It never applies for you."
+
+---
+
+### If you fumble
+
+Do not re-record the whole thing. The only section that must be one continuous
+take is the heal, because a cut there looks like the break was staged. Everything
+before it can be recorded in pieces and joined.
+
+---
+
+## 2b. Short version — 90 seconds
 
 The floor worth recording. Four beats, nothing cut that a judge needs. Roughly
 220 words, which is 90 seconds at a normal speaking pace — do not rush it to fit.
