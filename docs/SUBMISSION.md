@@ -8,108 +8,166 @@ Everything for the form, the video, the screenshots and the LinkedIn post.
 
 ---
 
-## 1. Screenshots for the README
+## 1. Screenshots — done
 
-Four images into `docs/screenshots/`. The README already links the first three,
-so they appear the moment the files exist.
-
-| File | What to capture | How |
-|---|---|---|
-| `feed.png` | The feed. Set the Function filter to **Engineering** first so the grid is full of recognisable roles. Hover one card so it is caught mid-flip. | Browser at ~1440px wide, capture the viewport only, not the whole page |
-| `heal.png` | Terminal running `npm run collect`, showing the fill-rate bars and the accuracy block | Full terminal window, dark theme, make the text large enough to read on a phone |
-| `health.png` | `/health` — the per-field extraction table with baselines | Scroll so "Extraction by field" is at the top of the shot |
-| `match.png` | `/match` after clicking **Use a sample CV**, with one card's "what to add" expanded | Shows the tailoring, which is the part reviewers do not expect |
-
-Two things that make screenshots read as professional: capture at a **16:9-ish
-crop** rather than a tall full-page scroll, and make sure **no browser bookmarks
-bar or personal tabs** are visible.
+All four are in `docs/screenshots/` and live in the README.
 
 ---
 
 ## 2. Demo video — 3 minutes
 
-Record in one take. A cut at the interesting moment reads as the interesting
-moment not having happened.
+**How to deliver it.** Short sentences. Pause between beats. Say the numbers
+slowly — they are the evidence, and a rushed number sounds made up. Do not read
+this word for word; know each beat and say it in your own voice.
 
-### 0:00 — The problem (30s)
+Record the healing section in **one take**. A cut at the moment something breaks
+reads as the moment not having happened.
 
-**Show:** the landing page, top of hero.
+---
 
-> "Job boards go stale and nobody measures it. The obvious answer is: just look
-> at the posting date.
+### 0:00 — The problem (25s)
+
+**Show:** landing page, top of hero.
+
+> "Everyone has applied to a job that was already filled.
 >
-> That does not work. Companies re-post roles and the clock resets. In the eleven
-> thousand postings I collected, a hundred and seventeen listings are under two
-> weeks old and are re-lists of a role first posted over a month earlier. One role
-> has been re-listed across six and a half years.
+> You check the date, it says two days ago, so you spend an hour on the
+> application. But the company filled that role in March. They just re-posted it,
+> and the clock reset.
 >
-> The listings that waste your time look like the freshest ones on the board."
+> I collected eleven thousand job postings to see how often that happens. One
+> thousand and fifteen roles are listed more than once. A hundred and seventeen
+> look less than two weeks old but are re-posts of something over a month old.
+> One role has been re-listed across six and a half years.
+>
+> So checking the date does not work. The listings that waste your time look like
+> the freshest ones on the board."
 
-### 0:30 — Scroll the story (25s)
+---
 
-**Show:** scroll slowly through the five chapters. Let each land.
+### 0:25 — The idea: go to the source (30s)
 
-> "So Revenant checks each posting against the company's own careers board. Gone
-> from their board but still listed elsewhere is not a guess — that is the company
-> contradicting the listing."
+**Show:** scroll slowly through the five story chapters. Let each one land.
 
-### 0:55 — The feed (35s)
+> "Here is the thing that makes this possible.
+>
+> LinkedIn and Indeed are aggregators. They hold a *copy* of a job posting, and
+> nobody tells them when it is taken down. That copy can sit there for months.
+>
+> So I do not scrape them. I scrape the companies directly — Greenhouse, Lever
+> and Ashby, the systems companies actually run their hiring on. That is the
+> source, not a copy of it.
+>
+> And once you are reading the source, you can do something nobody else can: if a
+> role is gone from the company's own board but still listed on an aggregator,
+> that is not a guess. That is the company contradicting the listing."
 
-**Show:** `/feed`. Set Function to Engineering. Hover a card so it flips.
+**This is the key differentiator — say it clearly and do not rush it.**
+
+---
+
+### 0:55 — The product (35s)
+
+**Show:** `/feed`. Set Function to **Engineering**. Hover a card so it flips.
 
 > "Five thousand three hundred live postings from ninety-six company boards, all
-> collected with Bright Data Scraper Studio. Filter by function, work mode, level,
-> company.
+> collected with Bright Data Scraper Studio.
 >
-> Every card carries a liveness score and the reason behind it — not just a
-> number."
+> Filter by function, by remote or hybrid, by level, by company. Hover a card and
+> it turns over.
+>
+> Every job has a score — and underneath it, the reason for that score. Not just a
+> number you have to trust."
 
-Click **Stale** in the verdict filter, open one card.
+**Show:** click **Stale**, open one card.
 
-> "Open for a hundred and seven days. Re-posted twice."
+> "Open for a hundred and seven days. Re-posted twice. That is why it scored low."
 
-### 1:30 — Match (30s)
+---
+
+### 1:30 — Matching (25s)
 
 **Show:** `/match`, click **Use a sample CV**, expand one "what to add".
 
-> "Paste a CV and every live posting is scored against it. No model call — it
-> names the exact skills that matched, and the ones the posting asks for that your
-> CV does not mention.
+> "Paste your CV and every live job gets scored against it.
 >
-> Every suggestion quotes the sentence in the posting that motivates it. And it
-> stops here: Revenant never applies on your behalf."
-
-### 2:00 — Scraper Studio, and the number that matters (40s)
-
-**Show:** terminal. Run `npm run collect -w @revenant/core -- greenhouse https://job-boards.greenhouse.io/vercel`
-
-> "This is the Scraper Studio collector running against Vercel's board. Watch the
-> salary field.
+> There is no AI model here. It tells you exactly which of your skills matched,
+> and exactly what the job asks for that your CV does not mention — and it quotes
+> the sentence from the posting that says so. You can check its reasoning.
 >
-> Greenhouse's structured API carries zero compensation — nought out of eleven
-> thousand postings. Pay-transparency law puts the range in the description prose,
-> so Scraper Studio extracts it from the page instead. Forty-three of fifty.
+> And it stops there. It will never apply for you."
+
+---
+
+### 1:55 — Scraper Studio, and the number that matters (40s)
+
+**Show:** terminal. Run:
+```bash
+npm run collect -w @revenant/core -- greenhouse https://job-boards.greenhouse.io/vercel
+```
+
+> "This is the Scraper Studio collector. I described what I wanted in one
+> paragraph of plain English — no CSS selectors — and it built the scraper. The
+> same paragraph works on Greenhouse, Lever and Ashby: three completely different
+> page layouts, one description.
 >
-> Zero to eighty-six percent. That is why this scrapes the rendered page rather
-> than consuming the API."
+> Now watch the salary field."
 
-Point at the accuracy block.
+**Wait for the fill-rate bars.**
 
-> "And it is graded — a hundred percent on every field the page actually shows,
-> scored against Greenhouse's own feed."
-
-### 2:40 — Self-healing (15s)
-
-**Show:** `/health`, then the heal section of the README or the landing animation.
-
-> "When a board changes shape and extraction drops below its baseline, Scraper
-> Studio proposes a fix and parks it at an approval gate. I deliberately do not
-> auto-approve — a heal can bind to the wrong element, refill the field perfectly
-> and return the wrong value.
+> "These companies publish a JSON API. It has *no salary field at all* — zero out
+> of eleven thousand postings.
 >
-> So the fix is re-run and graded against the platform's own feed before it is
-> accepted. Anyone can call self-heal. This is what lets me say why I rejected
-> one."
+> But pay-transparency law says the range has to appear in the posting. So it is
+> there — buried in the description text, where an API can never reach it.
+>
+> Scraper Studio pulls it out of the page. Forty-three of fifty. Zero to eighty-six
+> percent.
+>
+> That is why I scrape the rendered page instead of calling the API."
+
+**Point at the accuracy block.**
+
+> "And I check the result against the company's own feed. A hundred percent on
+> every field the page actually shows."
+
+---
+
+### 2:35 — Self-healing, for real (20s)
+
+**Show:** terminal, the heal run. One take.
+
+> "Last part. I built a job board I control, pointed a collector at it, then
+> redesigned it — same URL, every class renamed, the salary moved.
+>
+> The collector went to zero rows. Scraper Studio proposed a fix.
+>
+> I do not auto-approve it. A bad fix can grab the wrong element and refill the
+> field perfectly with the wrong value — it looks healthy and the data is wrong.
+> So the fix is checked against the company's own feed first, then approved.
+>
+> Sixty rows came back. And it recovered the job title, which the original
+> scraper never managed to extract at all."
+
+---
+
+### 2:55 — Close (5s)
+
+> "Public job data in. Human decision out. It never applies for you."
+
+---
+
+### The four things a judge should remember
+
+If you only get four sentences across, make them these:
+
+1. **I scrape companies directly, not LinkedIn** — Greenhouse, Lever, Ashby. The
+   source, not a copy.
+2. **That lets me prove a job is dead** — gone from the company's board but still
+   listed elsewhere is the company contradicting the listing.
+3. **The page has data the API does not** — salary, zero to eighty-six percent.
+4. **A heal is checked before it is trusted** — against the company's own feed,
+   not against what my scraper produced yesterday.
 
 ### 2:55 — Close (5s)
 

@@ -20,7 +20,13 @@ Job boards go stale and nobody measures it. A role gets filled, but the listing
 stays up for months. The same job shows up on five different boards. And when a
 site changes its HTML, a field silently starts returning nothing.
 
-Revenant scrapes job boards with Bright Data Scraper Studio and scores every
+**The important bit: I do not scrape LinkedIn or Indeed.** Those are aggregators —
+they hold a *copy* of a posting, and nobody tells them when it comes down. So I
+scrape the companies directly, through the systems they actually run hiring on:
+Greenhouse, Lever and Ashby. That is the source rather than a copy of it, and it
+is what makes everything below possible.
+
+Revenant scrapes those boards with Bright Data Scraper Studio and scores every
 listing on whether it is still real:
 
 - **Ghost detection.** We scrape the aggregator *and* the company's own careers
