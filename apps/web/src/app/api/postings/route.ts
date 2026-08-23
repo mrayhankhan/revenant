@@ -1,4 +1,4 @@
-import { db, livenessObservations, postings } from '@revenant/core/db/index';
+import { companies, db, livenessObservations, postings } from '@revenant/core/db/index';
 import { and, desc, eq, like, or, sql } from 'drizzle-orm';
 import { NextResponse } from 'next/server';
 
@@ -69,13 +69,15 @@ export async function GET(request: Request): Promise<NextResponse> {
       verdict: livenessObservations.verdict,
       provenGhost: livenessObservations.provenGhost,
       reasons: livenessObservations.reasons,
+      companyDomain: companies.domain,
     })
     .from(postings)
     .innerJoin(latest, eq(latest.postingId, postings.id))
     .innerJoin(
       livenessObservations,
       sql`${livenessObservations.postingId} = ${postings.id} and ${livenessObservations.observedAt} = ${latest.observedAt}`,
-    );
+    )
+    .leftJoin(companies, eq(companies.slug, postings.companySlug));
 
   const filtered = conditions.length > 0 ? base.where(and(...conditions)) : base;
 
@@ -100,13 +102,15 @@ export async function GET(request: Request): Promise<NextResponse> {
     counts['all'] = (counts['all'] ?? 0) + row.n;
   }
 
-  const companies = await database.get<{ n: number }>(
+  // Named for what it holds, not for the table — `companies` is the imported
+  // schema object in this file.
+  const companyCount = await database.get<{ n: number }>(
     sql`select count(distinct company_slug) as n from postings`,
   );
 
   return NextResponse.json({
     counts,
-    companies: companies?.n ?? 0,
+    companies: companyCount?.n ?? 0,
     total: rows.length,
     postings: rows.map((row) => ({
       id: row.id,
@@ -121,6 +125,7 @@ export async function GET(request: Request): Promise<NextResponse> {
       employmentType: row.employmentType,
       postedAt: row.postedAt?.toISOString() ?? null,
       applyUrl: row.applyUrl,
+      companyDomain: row.companyDomain,
       liveness: {
         score: row.score,
         verdict: row.verdict,

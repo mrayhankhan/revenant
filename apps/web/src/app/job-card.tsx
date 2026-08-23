@@ -16,6 +16,7 @@ export interface JobCardData {
   employmentType: string | null;
   postedAt: string | null;
   applyUrl?: string | null;
+  companyDomain?: string | null;
   liveness: { score: number; verdict: Verdict; provenGhost: boolean; reasons: string[] };
   match?: { score: number; matched: string[]; missing: string[]; reasons: string[] } | undefined;
 }
@@ -89,13 +90,14 @@ const ATS_HOSTS = /(greenhouse\.io|lever\.co|ashbyhq\.com|workable\.com|myworkda
 /**
  * A favicon for the employer, or null.
  *
- * Many companies white-label their board, so the apply link points at their own
- * domain — which is a reliable way to find their mark. Where the link stays on
- * the ATS there is nothing to derive, and the lettered mark is used instead.
- * Guessing `company.com` was rejected: it is wrong often enough (notion.so,
- * ramp.com vs ramp.co) to put the wrong logo on a job, which is worse than none.
+ * Prefers the domain listed against the company in `companies.txt`, which is why
+ * logos now appear on every posting rather than only the ones whose board is
+ * white-labelled. Falls back to the apply link's host when it is the employer's
+ * own, and gives up rather than guessing `company.com` — that guess is wrong
+ * often enough (notion.so, ramp.com vs ramp.co) to show another company's mark.
  */
-function logoUrl(applyUrl: string | null | undefined): string | null {
+function logoUrl(domain: string | null | undefined, applyUrl: string | null | undefined): string | null {
+  if (domain) return `https://www.google.com/s2/favicons?sz=64&domain=${domain}`;
   if (!applyUrl) return null;
 
   try {
@@ -126,7 +128,7 @@ export function JobCard({ job, index }: { job: JobCardData; index: number }): Re
   const company = job.company ?? 'Unknown';
   const location = displayLocation(job.location);
   const hue = companyHue(company);
-  const logo = logoUrl(job.applyUrl);
+  const logo = logoUrl(job.companyDomain, job.applyUrl);
 
   return (
     <a

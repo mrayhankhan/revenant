@@ -115,7 +115,7 @@ export function ScrollStory(): React.ReactElement {
                 >
                   {chapter.eyebrow}
                 </p>
-                <h3 className="mt-3 text-3xl font-semibold leading-tight tracking-tight sm:text-4xl">
+                <h3 className="display mt-3 text-[2.25rem] sm:text-[3rem]">
                   {chapter.title}
                 </h3>
                 <p className="mt-4 max-w-lg text-[15px] leading-relaxed text-[var(--text-muted)]">

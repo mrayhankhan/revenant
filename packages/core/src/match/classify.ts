@@ -20,7 +20,17 @@ export type WorkMode = (typeof WORK_MODES)[number];
 const INTERN = /\b(intern|internship|co-?op|apprentice|placement|working student)\b/i;
 const ENTRY =
   /\b(junior|jr\.?|entry[- ]level|new ?grad(uate)?|graduate|fresher|associate|trainee|early career|university)\b/i;
-const LEAD = /\b(lead|principal|staff|director|head of|vp|chief|manager|architect|distinguished)\b/i;
+/*
+ * "Manager" and "architect" are deliberately absent.
+ *
+ * Including them promoted every Account Manager, Product Manager and Solutions
+ * Architect to lead — 3,718 of 7,569 postings landed there, and Product showed
+ * 448 lead roles against zero mid, which is not a thing that happens at a real
+ * company. Manager is a job word, not a level word: it means seniority only in
+ * the compounds spelled out here.
+ */
+const LEAD =
+  /\b(lead|principal|staff|director|head of|vp|chief|distinguished|senior manager|engineering manager|group manager|manager, engineering)\b/i;
 const SENIOR = /\b(senior|sr\.?|experienced)\b/i;
 
 /**

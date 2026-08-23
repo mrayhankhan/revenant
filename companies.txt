@@ -1,79 +1,149 @@
 # Companies Revenant tracks.
 #
+# Format:  Company Name | domain.com
+#
+# The domain is optional and used only to find the employer's logo. It is listed
+# rather than guessed because guessing is wrong often enough — notion.so, ramp.com
+# vs ramp.co — to put another company's mark on a job, which is worse than none.
+#
 # Each name is resolved to a public ATS board by `npm run discover`, which
-# confirms the slug against the platform's own free feed before any scraper
-# runs. A wrong guess here costs nothing.
+# confirms the slug against the platform's own free feed before any scraper runs.
+# A name that resolves to nothing costs nothing.
 
 # --- Developer tools and infrastructure ---
-Stripe
-Vercel
-Cloudflare
-Datadog
-Databricks
-Snowflake
-MongoDB
-Elastic
-HashiCorp
-GitLab
-Confluent
-Grafana Labs
-Redis
-Supabase
-Netlify
-Twilio
-Sentry
-CircleCI
-DigitalOcean
-Fastly
+Stripe | stripe.com
+Vercel | vercel.com
+Cloudflare | cloudflare.com
+Datadog | datadoghq.com
+Databricks | databricks.com
+Snowflake | snowflake.com
+MongoDB | mongodb.com
+Elastic | elastic.co
+HashiCorp | hashicorp.com
+GitLab | gitlab.com
+Confluent | confluent.io
+Grafana Labs | grafana.com
+Redis | redis.com
+Supabase | supabase.com
+Netlify | netlify.com
+Twilio | twilio.com
+Sentry | sentry.io
+CircleCI | circleci.com
+DigitalOcean | digitalocean.com
+Fastly | fastly.com
+Postman | postman.com
+Docker | docker.com
+JFrog | jfrog.com
+PagerDuty | pagerduty.com
+Sonar | sonarsource.com
+Algolia | algolia.com
+Auth0 | auth0.com
+Cockroach Labs | cockroachlabs.com
+Neon | neon.tech
+PlanetScale | planetscale.com
+Temporal | temporal.io
+Pulumi | pulumi.com
+Render | render.com
+Railway | railway.app
 
 # --- AI ---
-Anthropic
-Scale AI
-Hugging Face
-Weights & Biases
-Runway
-Perplexity
+Anthropic | anthropic.com
+Scale AI | scale.com
+Hugging Face | huggingface.co
+Weights & Biases | wandb.ai
+Runway | runwayml.com
+Perplexity | perplexity.ai
+Cohere | cohere.com
+Together AI | together.ai
+Modal | modal.com
+LangChain | langchain.com
+Pinecone | pinecone.io
+Sierra | sierra.ai
+Harvey | harvey.ai
 
 # --- Fintech ---
-Coinbase
-Robinhood
-Ramp
-Brex
-Plaid
-Affirm
-Chime
-Marqeta
-Wise
-Klarna
+Coinbase | coinbase.com
+Robinhood | robinhood.com
+Ramp | ramp.com
+Brex | brex.com
+Plaid | plaid.com
+Affirm | affirm.com
+Chime | chime.com
+Marqeta | marqeta.com
+Wise | wise.com
+Klarna | klarna.com
+Mercury | mercury.com
+Modern Treasury | moderntreasury.com
+Alloy | alloy.com
+Anchorage Digital | anchorage.com
+Gemini | gemini.com
+Kraken | kraken.com
+Circle | circle.com
+Betterment | betterment.com
+Wealthfront | wealthfront.com
 
 # --- Product and consumer ---
-Figma
-Notion
-Airtable
-Asana
-Discord
-Reddit
-Duolingo
-Instacart
-DoorDash
-Lyft
-Pinterest
-Squarespace
-Grammarly
-Calendly
-Loom
-Miro
-Webflow
-Canva
+Figma | figma.com
+Notion | notion.so
+Airtable | airtable.com
+Asana | asana.com
+Discord | discord.com
+Reddit | reddit.com
+Duolingo | duolingo.com
+Instacart | instacart.com
+DoorDash | doordash.com
+Lyft | lyft.com
+Pinterest | pinterest.com
+Squarespace | squarespace.com
+Grammarly | grammarly.com
+Calendly | calendly.com
+Loom | loom.com
+Miro | miro.com
+Webflow | webflow.com
+Canva | canva.com
+Linear | linear.app
+Framer | framer.com
+Zapier | zapier.com
+Intercom | intercom.com
+Front | front.com
+Typeform | typeform.com
+Coursera | coursera.org
+Udemy | udemy.com
+Chegg | chegg.com
+Eventbrite | eventbrite.com
+Strava | strava.com
+Bumble | bumble.com
+Yelp | yelp.com
+Zillow | zillow.com
+Compass | compass.com
+Faire | faire.com
+Whatnot | whatnot.com
+Gopuff | gopuff.com
 
-# --- Healthcare, security, other ---
-Oscar Health
-Included Health
-Benchling
-Cedar
-1Password
-Snyk
-Vanta
-Rippling
-Gusto
-Carta
+# --- Healthcare, security, HR, other ---
+Oscar Health | hioscar.com
+Included Health | includedhealth.com
+Benchling | benchling.com
+Cedar | cedar.com
+Komodo Health | komodohealth.com
+Tempus | tempus.com
+Color | color.com
+1Password | 1password.com
+Snyk | snyk.io
+Vanta | vanta.com
+Abnormal Security | abnormalsecurity.com
+Wiz | wiz.io
+Tailscale | tailscale.com
+Rippling | rippling.com
+Gusto | gusto.com
+Carta | carta.com
+Deel | deel.com
+Remote | remote.com
+Lattice | lattice.com
+Checkr | checkr.com
+Samsara | samsara.com
+Flexport | flexport.com
+Nuro | nuro.ai
+Zipline | flyzipline.com
+Anduril | anduril.com
+Applied Intuition | appliedintuition.com

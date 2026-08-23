@@ -118,7 +118,7 @@ export default function HealthPage(): React.ReactElement {
   return (
     <div className="space-y-8">
       <header className="space-y-1.5">
-        <h1 className="text-2xl font-semibold tracking-tight">Collector health</h1>
+        <h1 className="display text-[2rem] sm:text-[2.5rem]">Collector health</h1>
         <p className="text-sm text-[var(--text-muted)]">
           Per-field extraction rates against the baseline each collector established when it was
           known good, and every heal that has been attempted.

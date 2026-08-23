@@ -87,7 +87,7 @@ export default function MatchPage(): React.ReactElement {
   return (
     <div className="space-y-7">
       <header className="space-y-1.5">
-        <h1 className="text-2xl font-semibold tracking-tight">Match against your CV</h1>
+        <h1 className="display text-[2rem] sm:text-[2.5rem]">Match against your CV</h1>
         <p className="max-w-2xl text-sm leading-relaxed text-[var(--text-muted)]">
           Paste your CV. Every live posting is scored against it, and each result says which of your
           skills it matched and which it asked for that you did not mention. Nothing is submitted on

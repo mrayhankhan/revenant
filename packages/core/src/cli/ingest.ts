@@ -43,21 +43,41 @@ const ORACLES: Record<DiscoveredBoard['platform'], Oracle> = {
   ashby: ashbyOracle,
 };
 
-async function companyNames(argv: string[]): Promise<string[]> {
+/**
+ * Company names, and the domains listed beside them.
+ *
+ * `companies.txt` uses `Name | domain.com`, where the domain is optional and
+ * used only for the employer's logo.
+ */
+async function companyList(argv: string[]): Promise<{ names: string[]; domains: Map<string, string> }> {
+  const domains = new Map<string, string>();
   const fileFlag = argv.indexOf('--file');
-  if (fileFlag !== -1) {
-    const path = argv[fileFlag + 1];
-    if (path === undefined) throw new Error('--file needs a path');
-    return (await readFile(path, 'utf8'))
-      .split('\n')
-      .map((line) => line.trim())
-      .filter((line) => line.length > 0 && !line.startsWith('#'));
+
+  if (fileFlag === -1) {
+    return { names: argv.filter((arg) => !arg.startsWith('--')), domains };
   }
-  return argv.filter((arg) => !arg.startsWith('--'));
+
+  const path = argv[fileFlag + 1];
+  if (path === undefined) throw new Error('--file needs a path');
+
+  const names: string[] = [];
+
+  for (const raw of (await readFile(path, 'utf8')).split('\n')) {
+    const line = raw.trim();
+    if (line.length === 0 || line.startsWith('#')) continue;
+
+    const [name, domain] = line.split('|').map((part) => part.trim());
+    if (!name) continue;
+
+    names.push(name);
+    if (domain) domains.set(name, domain);
+  }
+
+  return { names, domains };
 }
 
 async function main(): Promise<void> {
-  const names = await companyNames(process.argv.slice(2));
+  const { names, domains } = await companyList(process.argv.slice(2));
   if (names.length === 0) {
     console.error('usage: ingest <company...> | --file <path>');
     process.exit(2);
@@ -107,12 +127,17 @@ async function main(): Promise<void> {
         name: board.companyName,
         platform: board.platform,
         boardUrl: board.url,
+        domain: domains.get(board.companyName) ?? null,
         openRoles: board.openRoles,
         discoveredAt: now,
       })
       .onConflictDoUpdate({
         target: companies.slug,
-        set: { openRoles: board.openRoles, boardUrl: board.url },
+        set: {
+          openRoles: board.openRoles,
+          boardUrl: board.url,
+          domain: domains.get(board.companyName) ?? null,
+        },
       });
 
     await database.insert(collectionRuns).values({

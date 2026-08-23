@@ -86,12 +86,15 @@ export default async function Home(): Promise<React.ReactElement> {
           </Reveal>
 
           <Reveal delay={80}>
-            <h1 className="text-4xl font-semibold leading-[1.08] tracking-tight sm:text-6xl">
-              The job feed that knows
-              <br />
-              which listings are{' '}
+            {/*
+              The headline answers the obvious objection instead of inviting it.
+              "Which listings are dead" sounds like something a posting date
+              already tells you; a reposted role that reads two days old does not.
+            */}
+            <h1 className="display text-[2.75rem] sm:text-[4.5rem]">
+              The date says{' '}
               <span className="relative whitespace-nowrap">
-                <span className="verdict-ghost">already dead</span>
+                two days ago.
                 <svg
                   aria-hidden
                   viewBox="0 0 300 12"
@@ -101,27 +104,29 @@ export default async function Home(): Promise<React.ReactElement> {
                   <path
                     d="M2 8 C 80 2, 160 12, 298 5"
                     fill="none"
-                    stroke="var(--ghost)"
+                    stroke="var(--accent)"
                     strokeWidth="2"
                     strokeLinecap="round"
                     pathLength={1}
                     style={{
                       strokeDasharray: 1,
                       strokeDashoffset: 1,
-                      animation: 'underline 1100ms var(--ease-out) 600ms forwards',
+                      animation: 'underline 1100ms var(--ease-out) 700ms forwards',
                     }}
                   />
                 </svg>
               </span>
+              <br />
+              <em className="verdict-ghost">The role was filled in March.</em>
             </h1>
           </Reveal>
 
           <Reveal delay={160}>
-            <p className="max-w-2xl text-[15px] leading-relaxed text-[var(--text-muted)] sm:text-base">
-              Every aggregator rots. Roles stay open months after they were filled, the same job
-              appears on five boards, and a field quietly turns null when a site changes its markup.
-              Revenant treats a posting as a decaying object — it carries a liveness score, the
-              reason behind that score, and a record of when each value was last verified.
+            <p className="max-w-xl text-[15px] leading-relaxed text-[var(--text-muted)] sm:text-base">
+              Companies re-post roles and the clock resets, so the listings that waste your time look
+              like the freshest ones on the board. Revenant checks each posting against the
+              company&rsquo;s own careers page, and tells you which ones they have already taken
+              down.
             </p>
           </Reveal>
 
@@ -191,8 +196,7 @@ export default async function Home(): Promise<React.ReactElement> {
       <section className="grid gap-8 lg:grid-cols-2 lg:items-center">
         <Reveal>
           <div className="space-y-4">
-            <h2 className="text-2xl font-semibold tracking-tight">
-              A heal is graded before it is accepted.
+            <h2 className="display text-[2.25rem] sm:text-[2.75rem]">A heal is graded before it is accepted.
             </h2>
             <p className="text-[15px] leading-relaxed text-[var(--text-muted)]">
               Scraper Studio proposes a fix and parks it at an approval gate. The obvious move is to
@@ -254,8 +258,7 @@ export default async function Home(): Promise<React.ReactElement> {
       <Reveal>
         <section className="panel relative overflow-hidden px-6 py-10 text-center sm:px-10">
           <div className="relative space-y-4">
-            <h2 className="text-2xl font-semibold tracking-tight">
-              Stop applying to jobs that no longer exist.
+            <h2 className="display text-[2.25rem] sm:text-[3rem]">Stop applying to jobs that no longer exist.
             </h2>
             <p className="mx-auto max-w-xl text-sm leading-relaxed text-[var(--text-muted)]">
               Paste your CV and get roles ranked by fit — with the dead ones already filtered out.

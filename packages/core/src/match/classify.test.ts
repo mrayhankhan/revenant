@@ -73,6 +73,26 @@ describe('classifyLevel', () => {
     expect(classifyLevel('Software Engineer')).toBe('mid');
     expect(classifyLevel(null)).toBe('mid');
   });
+
+  /*
+   * Treating "manager" as a level put 3,718 of 7,569 postings at lead, and gave
+   * Product 448 lead roles against zero mid. It is a job word, not a level word.
+   */
+  it('does not treat every manager as a lead', () => {
+    expect(classifyLevel('Account Manager')).toBe('mid');
+    expect(classifyLevel('Product Manager')).toBe('mid');
+    expect(classifyLevel('Program Manager, Trust')).toBe('mid');
+  });
+
+  it('still reads seniority from the manager compounds that carry it', () => {
+    expect(classifyLevel('Engineering Manager')).toBe('lead');
+    expect(classifyLevel('Senior Manager, Analytics')).toBe('lead');
+  });
+
+  it('does not treat architect as a level', () => {
+    expect(classifyLevel('Solutions Architect')).toBe('mid');
+    expect(classifyLevel('Principal Architect')).toBe('lead');
+  });
 });
 
 describe('classifyWorkMode', () => {

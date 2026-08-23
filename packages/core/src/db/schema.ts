@@ -119,6 +119,14 @@ export const companies = sqliteTable(
     name: text('name').notNull(),
     platform: text('platform').notNull(), // greenhouse, lever, ashby
     boardUrl: text('board_url').notNull(),
+    /**
+     * The employer's own domain, used to find their logo.
+     *
+     * Listed in `companies.txt` rather than derived, because the apply link is
+     * often still on the ATS and guessing `company.com` is wrong often enough
+     * to show another company's mark on a job.
+     */
+    domain: text('domain'),
     openRoles: integer('open_roles').notNull().default(0),
     discoveredAt: integer('discovered_at', { mode: 'timestamp_ms' }).notNull(),
   },

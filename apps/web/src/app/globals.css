@@ -16,25 +16,56 @@
  */
 
 :root {
-  --bg: #08090b;
-  --surface: #0e1014;
-  --surface-raised: #14171d;
-  --border: #1d212a;
-  --border-strong: #2a2f3a;
+  /*
+   * Warm near-black rather than blue-grey. Every dark dashboard in this category
+   * sits on slate; shifting the base a few degrees toward brown is most of what
+   * stops this looking like the same template.
+   */
+  --bg: #0b0a09;
+  --surface: #141210;
+  --surface-raised: #1c1916;
+  --border: #262220;
+  --border-strong: #383230;
 
-  --text: #e8eaf0;
-  --text-muted: #8b919f;
-  --text-faint: #5c6270;
+  --text: #f4f1ec;
+  --text-muted: #a09890;
+  --text-faint: #6b635d;
 
-  --live: #34d399;
+  --live: #4ade80;
   --aging: #fbbf24;
-  --stale: #64748b;
+  --stale: #78716c;
   --ghost: #fb7185;
 
-  --accent: #7dd3fc;
+  /* Amber, so the accent belongs to the warm base instead of fighting it. */
+  --accent: #fbbf24;
 
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+/* ---- Type ---------------------------------------------------------------- */
+
+.display {
+  font-family: var(--font-display), Georgia, 'Times New Roman', serif;
+  font-weight: 400;
+  letter-spacing: -0.015em;
+  line-height: 1.02;
+}
+
+.display em {
+  font-style: italic;
+}
+
+.mono {
+  font-family: var(--font-mono), ui-monospace, 'SF Mono', Menlo, monospace;
+}
+
+/* Small caps labels, which carry most of the structure on data-heavy pages. */
+.label {
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.13em;
+  color: var(--text-faint);
 }
 
 * {
@@ -48,11 +79,27 @@ html {
 body {
   background: var(--bg);
   color: var(--text);
-  font-family:
-    ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Inter, Roboto, Helvetica, Arial, sans-serif;
+  font-family: var(--font-body), ui-sans-serif, system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
-  font-feature-settings: 'cv02', 'cv03', 'cv04';
+  font-feature-settings: 'cv02', 'cv03', 'cv04', 'ss01';
   min-height: 100vh;
+}
+
+/*
+ * Film grain over everything.
+ *
+ * Flat dark surfaces band visibly on large gradients and read as cheap. A fixed
+ * noise layer at very low opacity hides the banding and gives the whole surface
+ * a texture that a flat fill does not have. Inline SVG so it costs no request.
+ */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
 /*

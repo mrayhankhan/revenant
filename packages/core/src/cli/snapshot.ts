@@ -22,8 +22,14 @@ import { sql } from 'drizzle-orm';
 import '../env.js';
 import { databaseUrl, db } from '../db/index.js';
 
-/** Postings kept per company. Enough to demo matching, small enough to ship. */
-const PER_COMPANY = 60;
+/**
+ * Postings kept per company.
+ *
+ * Tuned against the bundle rather than chosen: at 60 across eighty-odd boards
+ * the snapshot passed 40MB, which is a slow cold start for a page that has to
+ * open quickly in front of a judge.
+ */
+const PER_COMPANY = 32;
 
 const TABLES = [
   'companies',

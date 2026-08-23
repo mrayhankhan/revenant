@@ -218,7 +218,7 @@ export default function FeedPage(): React.ReactElement {
     <div className="space-y-7">
       <header className="space-y-1.5">
         <div className="flex flex-wrap items-baseline justify-between gap-3">
-          <h1 className="text-2xl font-semibold tracking-tight">
+          <h1 className="display text-[2rem] sm:text-[2.5rem]">
             {personalised && profile?.name ? `Matches for ${profile.name}` : 'Job feed'}
           </h1>
           {ready && !profile && (
