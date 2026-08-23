@@ -128,9 +128,25 @@ export default function MatchPage(): React.ReactElement {
 
       {error && <div className="panel p-5 text-sm verdict-ghost">{error}</div>}
 
+      {loading && !data && (
+        <div className="space-y-3">
+          {/* A skill-by-skill scan is fast, but a blank screen makes it feel
+              slower than it is. */}
+          <div className="panel flex items-center gap-3 p-5">
+            <span className="spinner" />
+            <span className="text-sm text-[var(--text-muted)]">
+              Scoring live postings against your CV…
+            </span>
+          </div>
+          {Array.from({ length: 5 }, (_, i) => (
+            <div key={i} className="skeleton h-[104px] w-full" style={{ animationDelay: `${i * 90}ms` }} />
+          ))}
+        </div>
+      )}
+
       {data && (
         <>
-          <section className="panel p-5">
+          <section className="panel reveal p-5">
             <h2 className="text-[13px] font-medium uppercase tracking-wide text-[var(--text-faint)]">
               What we read from your CV
             </h2>
@@ -152,10 +168,11 @@ export default function MatchPage(): React.ReactElement {
               </span>
             </div>
             <div className="mt-3 flex flex-wrap gap-1.5">
-              {data.profile.skills.map((skill) => (
+              {data.profile.skills.map((skill, index) => (
                 <span
                   key={skill}
-                  className="rounded-full border border-[var(--border)] px-2.5 py-0.5 text-[12px] text-[var(--text-muted)]"
+                  className="reveal rounded-full border border-[var(--border)] px-2.5 py-0.5 text-[12px] text-[var(--text-muted)] transition-colors duration-200 hover:border-[var(--accent)] hover:text-[var(--text)]"
+                  style={{ '--i': Math.min(index, 20) } as React.CSSProperties}
                 >
                   {skill}
                 </span>
@@ -164,10 +181,14 @@ export default function MatchPage(): React.ReactElement {
           </section>
 
           <div className="space-y-2.5">
-            {data.results.map((result) => {
+            {data.results.map((result, index) => {
               const expanded = open === result.id;
               return (
-                <div key={result.id} className={clsx('card', `is-${result.liveness.verdict}`)}>
+                <div
+                  key={result.id}
+                  className={clsx('card reveal', `is-${result.liveness.verdict}`)}
+                  style={{ '--i': Math.min(index, 14) } as React.CSSProperties}
+                >
                   <div className="flex items-start justify-between gap-5">
                     <div className="min-w-0 flex-1">
                       <h3 className="truncate text-[15px] font-medium">{result.title}</h3>
@@ -193,10 +214,13 @@ export default function MatchPage(): React.ReactElement {
 
                   <div className="meter mt-3">
                     <span
-                      style={{
-                        width: `${result.match.score}%`,
-                        background: matchColor(result.match.score),
-                      }}
+                      style={
+                        {
+                          '--to': `${result.match.score}%`,
+                          '--i': Math.min(index, 14),
+                          background: matchColor(result.match.score),
+                        } as React.CSSProperties
+                      }
                     />
                   </div>
 

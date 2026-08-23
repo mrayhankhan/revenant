@@ -63,15 +63,17 @@ function Stat({
   label,
   value,
   hint,
+  index = 0,
 }: {
   label: string;
   value: string;
   // Explicitly `| undefined`: the repo runs with exactOptionalPropertyTypes, so
   // "may be omitted" and "may be passed as undefined" are different contracts.
   hint?: string | undefined;
+  index?: number;
 }): React.ReactElement {
   return (
-    <div className="panel px-5 py-4">
+    <div className="panel reveal px-5 py-4" style={{ '--i': index } as React.CSSProperties}>
       <div className="text-[11px] uppercase tracking-wide text-[var(--text-faint)]">{label}</div>
       <div className="tabular mt-1 text-2xl font-semibold">{value}</div>
       {hint && <div className="mt-1 text-[12px] text-[var(--text-muted)]">{hint}</div>}
@@ -124,17 +126,19 @@ export default function HealthPage(): React.ReactElement {
       </header>
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <Stat label="Collectors" value={String(data.collectors.length)} />
-        <Stat label="Runs recorded" value={String(data.runs.length)} />
+        <Stat label="Collectors" value={String(data.collectors.length)} index={0} />
+        <Stat label="Runs recorded" value={String(data.runs.length)} index={1} />
         <Stat
           label="Heals attempted"
           value={String(summary.totalHeals)}
           hint={summary.totalHeals === 0 ? 'nothing has broken yet' : undefined}
+          index={2}
         />
         <Stat
           label="Heal accuracy"
           value={summary.averageAccuracy === null ? '—' : `${(summary.averageAccuracy * 100).toFixed(1)}%`}
           hint={summary.averageAccuracy === null ? 'no graded heals' : 'measured against ground truth'}
+          index={3}
         />
       </div>
 
@@ -159,16 +163,22 @@ export default function HealthPage(): React.ReactElement {
               </div>
 
               <div className="divide-y divide-[var(--border)]">
-                {collector.fields.map((field) => (
-                  <div key={field.field} className="flex items-center gap-4 px-5 py-2.5">
+                {collector.fields.map((field, index) => (
+                  <div
+                    key={field.field}
+                    className="flex items-center gap-4 px-5 py-2.5 transition-colors duration-200 hover:bg-[var(--surface-raised)]"
+                  >
                     <span className="w-40 shrink-0 text-[13px]">{field.field}</span>
 
                     <div className="meter flex-1">
                       <span
-                        style={{
-                          width: `${field.rate * 100}%`,
-                          background: VERDICT_COLOR[field.verdict] ?? 'var(--stale)',
-                        }}
+                        style={
+                          {
+                            '--to': `${field.rate * 100}%`,
+                            '--i': Math.min(index, 12),
+                            background: VERDICT_COLOR[field.verdict] ?? 'var(--stale)',
+                          } as React.CSSProperties
+                        }
                       />
                     </div>
 
