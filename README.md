@@ -5,15 +5,12 @@
 Live demo → **https://revenant-jobs.vercel.app** (no login, no signup)
 Built for [Into the Scrape-Verse](https://www.wemakedevs.org/hackathons/scrape-verse), Aug 2026.
 
-<!--
-SCREENSHOTS — add these three, then delete this comment.
-Judges read the README first, so put pictures above everything else.
-  docs/screenshots/feed.png      the feed, showing liveness scores
-  docs/screenshots/heal.png      terminal output of `npm run heal`
-  docs/screenshots/health.png    the collector health page
--->
+![The feed — 5,348 live postings, each with a liveness score and the reason behind it](docs/screenshots/feed.png)
 
-![The feed](docs/screenshots/feed.png)
+| | |
+|---|---|
+| ![Matching a CV](docs/screenshots/match.png) | ![Collector health](docs/screenshots/health.png) |
+| **Match** — roles ranked against a CV, naming the skills you are missing | **Health** — per-field extraction against each collector's baseline |
 
 ---
 
@@ -42,78 +39,55 @@ listing on whether it is still real:
 
 ## How I used Bright Data Scraper Studio
 
-**Collector:** `c_msyq5cea136y76lhb0`
-**Target:** `https://job-boards.greenhouse.io/vercel` (rendered HTML, not the JSON API)
+I described the data I wanted in one paragraph of plain English, and Scraper
+Studio built the scraper. No CSS selectors, no XPath — just what each field *is*:
 
-Everything runs through the CLI, driven from Claude Code.
+> Every job posting on this board. For each: the job title as displayed; the
+> hiring company name; where the role is based as written; whether it is remote,
+> hybrid or on-site; **the advertised salary range with its currency if stated
+> anywhere in the posting including the description text**; the employment type;
+> the date it says it was posted; the full job description; and the link a
+> candidate follows to apply.
 
-### 1. Created the scraper
+That bolded phrase is the whole trick. Job boards put *"Competitive compensation
+package"* in their salary field and hide the real number further down the page in
+prose. Asking for it "anywhere in the posting" is what finds it.
 
-```bash
-npm run scraper:create -w @revenant/core -- greenhouse https://job-boards.greenhouse.io/vercel
-```
+The same paragraph is reused for Greenhouse, Lever and Ashby. Three completely
+different page structures, one description — that is the part I could not have
+built by hand in a week.
 
-This wraps `bdata scraper create <url> "<description>"`. Took 4.6 minutes and
-returned the collector ID, which it writes into `.env`.
+**I pointed it at the rendered HTML, not the JSON APIs these platforms publish.**
+Two reasons. Greenhouse's API has no salary field at all, so the page contains
+data the API cannot give me. And an API that never changes shape gives
+self-healing nothing to do.
 
-The description I gave it — one plain-English spec, no CSS selectors:
+The APIs are still used — but as a **reference to check the scrape against**,
+never as the source.
 
-```
-Every job posting on this board. For each: the job title as displayed; the
-hiring company name; where the role is based as written; whether it is remote,
-hybrid or on-site; the advertised salary range with its currency if stated
-anywhere in the posting including the description text; the employment type;
-the date it says it was posted; the full job description; and the link a
-candidate follows to apply.
-```
+### What it produced
 
-The phrase **"including the description text"** is what recovers the salary. The
-board's own salary field mostly says *"Competitive compensation package"*, while
-the real number sits further down the page in prose.
-
-### 2. Ran it
-
-```bash
-npm run collect -w @revenant/core -- greenhouse https://job-boards.greenhouse.io/vercel
-```
-
-Wraps `bdata scraper run`. Real output:
+Collector `c_msyq5cea136y76lhb0` against Vercel's board, in 4.6 minutes:
 
 ```
-50 rows returned, 0 rejected  (154.5s)
+50 rows returned, 0 rejected
 
-field fill rates
-  title            ████████████████████ 100%  50/50
-  location         ████████████████████ 100%  50/50
-  descriptionHtml  ████████████████████ 100%  50/50
-  applyUrl         ████████████████████ 100%  50/50
-  salaryMin        █████████████████···  86%  43/50
-  postedAt         ····················   0%  0/50
+  title            100%      salaryMin         86%   ← the API has 0%
+  location         100%      postedAt           0%   ← not shown on the index
+  descriptionHtml  100%      applyUrl         100%
 
-accuracy vs greenhouse's own feed
-  paired 50, missed 34, unmatched 0
-  title            100.0%
-  location         100.0%
-  applyUrl         100.0%
-  descriptionHtml  100.0%
-  postedAt           0.0%   ← the board index doesn't show dates
-  overall           80.0%
+accuracy vs Greenhouse's own feed:  80% overall, 100% on every field the page shows
 ```
 
-Full output: [`docs/sample-output.json`](docs/sample-output.json)
+Sample output: [`docs/sample-output.json`](docs/sample-output.json)
 
-### 3. Healing — run live, against a real redesign
+### When the page changed
 
-```bash
-npm run heal -w @revenant/core -- chaos https://revenant-chaos.vercel.app
-```
+I built a job board I control, deployed it, pointed a collector at it, and then
+redesigned it at the **same URL** — every class renamed, the salary nested and
+split across three elements.
 
-`apps/chaos-target` is a job board I control, deployed so Bright Data can reach
-it. It serves 60 roles and can be redesigned on command at the **same URL** —
-every class renamed, the salary nested and split across three elements. A
-redesign is the same page coming back different, so the URL must not change.
-
-What actually happened:
+![The heal loop, run live](docs/screenshots/heal.png)
 
 ```
 baseline (layout A)   60 rows · location 100% · salary 83%
@@ -123,7 +97,7 @@ baseline (layout A)   60 rows · location 100% · salary 83%
 collector run         0 rows
 detector              "returned nothing where previous runs averaged 33 rows"
 heal requested        Scraper Studio returns a preview at the approval gate
-graded + approved     preview parsed into usable rows
+graded, then approved
 collector re-run      60 rows, 0 rejected
 after                 location 100% · salary 83% · title 100%
 ```
@@ -131,29 +105,17 @@ after                 location 100% · salary 83% · title 100%
 `title` was 0% before the heal and 100% after — the repair recovered a field the
 original collector never managed to extract.
 
-**Two things this exposed, both fixed:**
+**The one thing I did differently:** `bdata scraper heal` proposes a fix and waits
+for approval, and I never pass `--auto-approve`. Auto-approving means trusting a
+fix because the thing that wrote it says it works — but a heal can latch onto the
+wrong element, refill the field perfectly, and return a job's department where its
+location used to be. Fill rate looks fine. The data is wrong.
 
-Drift is measured per field *across rows*, so a run returning **no** rows gives
-no evidence about any field and every one reports "insufficient data". The worst
-possible failure was the one case the detector could not see — it reported
-"extraction is healthy" while the collector matched nothing. Row count is now
-judged separately, against what previous runs returned.
+So the gate is left closed. It hands back the rows the fix *would* produce, those
+get checked against the platform's own feed, and only then is it approved.
 
-And grading must read the **gate's preview**, not a re-run. A proposed fix is not
-live until approved, so re-running returns the old scraper's output and every
-heal gets rejected, including the good ones.
-
-Wraps `bdata scraper heal` and `bdata scraper approve`. The important part is
-that **we do not pass `--auto-approve`.**
-
-`bdata scraper heal` proposes a fix and waits for approval. If you auto-approve,
-you are trusting the fix because the thing that made it says it works. But a heal
-can latch onto the wrong element — it fills the field back up with the job's
-department where the location used to be. Fill rate looks perfect. The data is
-wrong.
-
-So we re-run the scraper, compare the output field-by-field against the ATS
-platform's own JSON feed, and approve only if accuracy actually improved.
+Running it live also broke two of my own assumptions, which is in
+[the healing notes](#two-things-worth-reading-the-code-for).
 
 ### 4. Where the data goes
 
@@ -214,13 +176,28 @@ same run, zero salaries found:
 Fill rate cannot tell a good fix from a confident wrong one. Ground truth can.
 
 ```
-heal proposed → re-run → compare against the platform's own feed
-                            ├─ accuracy improved and cleared the bar → approve
-                            └─ otherwise                             → reject
+heal proposed → read the gate's preview → compare against the platform's own feed
+                                              ├─ good → approve
+                                              └─ otherwise → reject
 ```
 
+Running this live broke two assumptions I had written into it.
+
+**Drift could not see total failure.** Drift is measured per field *across rows*,
+so a run that returns no rows produces no evidence about any field — every one
+reports "insufficient data". The first real redesign broke extraction completely
+and the loop printed *"No drift. Extraction is healthy."* The worst possible
+failure was the only case it could not see. Row count is now judged on its own.
+
+**Grading a re-run rejects every heal.** I had it ask for a fix, then re-run the
+collector to score it. But a proposed fix is not live until approved, so the
+re-run returns the *old* scraper's output — always. The first genuine heal got
+rejected for being correct. The gate returns the rows the fix would produce, and
+that is what gets graded.
+
 [`healing/orchestrator.ts`](packages/core/src/healing/orchestrator.ts) ·
-[`healing/audit.ts`](packages/core/src/healing/audit.ts)
+[`healing/audit.ts`](packages/core/src/healing/audit.ts) ·
+[`healing/baseline.ts`](packages/core/src/healing/baseline.ts)
 
 ---
 
