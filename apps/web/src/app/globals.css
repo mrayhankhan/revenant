@@ -6,10 +6,13 @@
  * Revenant's design layer.
  *
  * The product is a judgement about data you cannot see — whether a listing is
- * still real. So the interface is built to make one number and one sentence
- * legible at a glance, and to keep everything else quiet: near-monochrome
- * surfaces, a single hue per verdict, and motion reserved for state changes so
- * that when a field heals on screen, the movement means something.
+ * still real. So the interface makes one number and one sentence legible at a
+ * glance and keeps everything else quiet: near-monochrome surfaces, one hue per
+ * verdict, and motion that carries meaning rather than decoration.
+ *
+ * Every animation here is tied to a state change: a card arriving, a meter
+ * filling to its value, a listing being judged dead. Nothing loops, nothing
+ * moves without a reason, and all of it is disabled under prefers-reduced-motion.
  */
 
 :root {
@@ -29,6 +32,9 @@
   --ghost: #fb7185;
 
   --accent: #7dd3fc;
+
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
 }
 
 * {
@@ -46,9 +52,35 @@ body {
     ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Inter, Roboto, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   font-feature-settings: 'cv02', 'cv03', 'cv04';
+  min-height: 100vh;
 }
 
-/* Scores and counts are compared down a column, so they must not jitter. */
+/*
+ * A single slow gradient behind everything. It never repeats within a session,
+ * so it reads as depth rather than as an animation competing for attention.
+ */
+body::before {
+  content: '';
+  position: fixed;
+  inset: -40% -20% auto -20%;
+  height: 70vh;
+  z-index: -1;
+  background:
+    radial-gradient(60% 60% at 20% 0%, rgba(52, 211, 153, 0.06), transparent 70%),
+    radial-gradient(50% 50% at 80% 10%, rgba(125, 211, 252, 0.05), transparent 70%);
+  pointer-events: none;
+  animation: drift 40s var(--ease-in-out) infinite alternate;
+}
+
+@keyframes drift {
+  from {
+    transform: translate3d(-2%, 0, 0) scale(1);
+  }
+  to {
+    transform: translate3d(2%, 3%, 0) scale(1.08);
+  }
+}
+
 .tabular {
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.01em;
@@ -67,7 +99,7 @@ body {
   color: var(--ghost);
 }
 
-/* ---- Panels ------------------------------------------------------------- */
+/* ---- Panels and cards ---------------------------------------------------- */
 
 .panel {
   background: var(--surface);
@@ -84,27 +116,37 @@ body {
   position: relative;
   overflow: hidden;
   transition:
-    border-color 140ms ease,
-    background 140ms ease,
-    transform 140ms ease;
+    border-color 180ms var(--ease-out),
+    background 180ms var(--ease-out),
+    transform 180ms var(--ease-out),
+    box-shadow 180ms var(--ease-out),
+    opacity 320ms var(--ease-out);
 }
 
 .card:hover {
   border-color: var(--border-strong);
   background: var(--surface-raised);
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px -12px rgba(0, 0, 0, 0.8);
 }
 
-/*
- * A hairline down the left edge carries the verdict, so the feed reads as a
- * column of coloured ticks before any text is parsed.
- */
+/* A hairline down the left edge carries the verdict, so the feed reads as a
+   column of coloured ticks before any text is parsed. */
 .card::before {
   content: '';
   position: absolute;
   inset: 0 auto 0 0;
   width: 2px;
   background: var(--edge, transparent);
+  transform: scaleY(0);
+  transform-origin: top;
+  animation: edge-in 520ms var(--ease-out) forwards;
+}
+
+@keyframes edge-in {
+  to {
+    transform: scaleY(1);
+  }
 }
 
 .card.is-ghost {
@@ -122,10 +164,32 @@ body {
 
 /* A proven-dead listing should look subtracted from the feed, not decorated. */
 .card.is-ghost {
-  opacity: 0.62;
+  opacity: 0.55;
+  filter: saturate(0.6);
 }
 .card.is-ghost:hover {
   opacity: 1;
+  filter: none;
+}
+
+/* ---- Reveal on arrival --------------------------------------------------- */
+
+/*
+ * Cards fade up as they enter. The stagger is capped so a long list does not
+ * take seconds to finish arriving — past the cap everything lands together.
+ */
+.reveal {
+  opacity: 0;
+  transform: translateY(12px);
+  animation: reveal 520ms var(--ease-out) forwards;
+  animation-delay: calc(var(--i, 0) * 45ms);
+}
+
+@keyframes reveal {
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 /* ---- Liveness meter ------------------------------------------------------ */
@@ -142,7 +206,17 @@ body {
   display: block;
   height: 100%;
   border-radius: 2px;
-  transition: width 400ms cubic-bezier(0.4, 0, 0.2, 1);
+  width: 0;
+  animation: fill 900ms var(--ease-out) forwards;
+  animation-delay: calc(var(--i, 0) * 45ms + 120ms);
+}
+
+/* The meter fills to its value rather than appearing at it, so a low score is
+   seen to be low rather than simply being short. */
+@keyframes fill {
+  to {
+    width: var(--to, 0%);
+  }
 }
 
 /* ---- Filter pills -------------------------------------------------------- */
@@ -160,14 +234,20 @@ body {
   font-weight: 500;
   cursor: pointer;
   transition:
-    border-color 120ms ease,
-    color 120ms ease,
-    background 120ms ease;
+    border-color 160ms var(--ease-out),
+    color 160ms var(--ease-out),
+    background 160ms var(--ease-out),
+    transform 160ms var(--ease-out);
 }
 
 .pill:hover {
   color: var(--text);
   border-color: var(--border-strong);
+  transform: translateY(-1px);
+}
+
+.pill:active {
+  transform: translateY(0);
 }
 
 .pill[data-active='true'] {
@@ -186,7 +266,7 @@ body {
   color: var(--text-muted);
 }
 
-/* ---- Inputs -------------------------------------------------------------- */
+/* ---- Inputs and buttons -------------------------------------------------- */
 
 .field {
   width: 100%;
@@ -197,7 +277,9 @@ body {
   color: var(--text);
   font-size: 0.875rem;
   outline: none;
-  transition: border-color 120ms ease;
+  transition:
+    border-color 160ms var(--ease-out),
+    box-shadow 160ms var(--ease-out);
 }
 
 .field::placeholder {
@@ -206,19 +288,99 @@ body {
 
 .field:focus {
   border-color: var(--border-strong);
+  box-shadow: 0 0 0 3px rgba(125, 211, 252, 0.08);
+}
+
+.btn {
+  border-radius: 9px;
+  border: 1px solid var(--border-strong);
+  background: var(--surface-raised);
+  color: var(--text);
+  padding: 0.6rem 1.25rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    border-color 160ms var(--ease-out),
+    transform 160ms var(--ease-out),
+    opacity 160ms var(--ease-out);
+}
+
+.btn:hover:not(:disabled) {
+  border-color: var(--accent);
+  transform: translateY(-1px);
+}
+
+.btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.btn-quiet {
+  border-color: transparent;
+  background: transparent;
+  color: var(--text-muted);
+}
+
+.btn-quiet:hover:not(:disabled) {
+  color: var(--text);
+  border-color: var(--border);
+}
+
+/* ---- Chips (selectable options) ------------------------------------------ */
+
+.chip {
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-muted);
+  border-radius: 999px;
+  padding: 0.4rem 0.9rem;
+  font-size: 0.8125rem;
+  cursor: pointer;
+  transition:
+    border-color 160ms var(--ease-out),
+    color 160ms var(--ease-out),
+    background 160ms var(--ease-out),
+    transform 160ms var(--ease-out);
+}
+
+.chip:hover {
+  color: var(--text);
+  transform: translateY(-1px);
+}
+
+.chip[data-selected='true'] {
+  border-color: var(--accent);
+  background: rgba(125, 211, 252, 0.08);
+  color: var(--text);
 }
 
 /* ---- Nav ----------------------------------------------------------------- */
 
 .nav-link {
+  position: relative;
   color: var(--text-muted);
   font-size: 0.875rem;
   font-weight: 500;
   padding: 0.35rem 0;
-  border-bottom: 1.5px solid transparent;
-  transition:
-    color 120ms ease,
-    border-color 120ms ease;
+  transition: color 160ms var(--ease-out);
+}
+
+.nav-link::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1.5px;
+  background: var(--accent);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 220ms var(--ease-out);
 }
 
 .nav-link:hover {
@@ -227,15 +389,16 @@ body {
 
 .nav-link[data-active='true'] {
   color: var(--text);
-  border-bottom-color: var(--accent);
+}
+
+.nav-link[data-active='true']::after {
+  transform: scaleX(1);
 }
 
 /* ---- Reason line --------------------------------------------------------- */
 
-/*
- * The reason is the product. A bare score persuades nobody; "removed from the
- * company's own board 12 days ago" is what a person acts on.
- */
+/* The reason is the product. A bare score persuades nobody; "removed from the
+   company's own board 12 days ago" is what a person acts on. */
 .reason {
   font-size: 0.8125rem;
   line-height: 1.5;
@@ -247,10 +410,36 @@ body {
   font-weight: 500;
 }
 
+/* ---- Step transitions ---------------------------------------------------- */
+
+.step {
+  animation: step-in 420ms var(--ease-out) both;
+}
+
+@keyframes step-in {
+  from {
+    opacity: 0;
+    transform: translateX(16px);
+  }
+}
+
+.step-back {
+  animation: step-back 420ms var(--ease-out) both;
+}
+
+@keyframes step-back {
+  from {
+    opacity: 0;
+    transform: translateX(-16px);
+  }
+}
+
+/* ---- Loading ------------------------------------------------------------- */
+
 .skeleton {
   background: linear-gradient(90deg, #10131a 25%, #171b23 50%, #10131a 75%);
   background-size: 200% 100%;
-  animation: shimmer 1.4s infinite;
+  animation: shimmer 1.4s linear infinite;
   border-radius: 8px;
 }
 
@@ -263,11 +452,58 @@ body {
   }
 }
 
+.spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--border-strong);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 700ms linear infinite;
+  display: inline-block;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ---- Progress ------------------------------------------------------------ */
+
+.progress {
+  height: 2px;
+  background: var(--border);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progress > span {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  transition: width 420ms var(--ease-out);
+}
+
+/*
+ * Motion here is informative, not decorative — but a preference against it is a
+ * statement about how someone's body responds to movement, so it wins outright.
+ */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .reveal {
+    opacity: 1;
+    transform: none;
+  }
+
+  .meter > span {
+    width: var(--to, 0%);
   }
 }

@@ -1,6 +1,8 @@
 import { db } from '@revenant/core/db/index';
 import { sql } from 'drizzle-orm';
 
+import { HeroActions } from './hero-actions';
+
 export const dynamic = 'force-dynamic';
 
 interface Stats {
@@ -92,20 +94,7 @@ export default async function Home(): Promise<React.ReactElement> {
           treats a posting as a decaying object: it carries a liveness score, the reason behind that
           score, and a per-field record of when each value was last verified.
         </p>
-        <div className="flex flex-wrap gap-3 pt-1">
-          <a
-            href="/feed"
-            className="rounded-lg border border-[var(--border-strong)] bg-[var(--surface-raised)] px-5 py-2.5 text-sm font-medium transition hover:border-[var(--accent)]"
-          >
-            Open the feed
-          </a>
-          <a
-            href="/health"
-            className="rounded-lg border border-[var(--border)] px-5 py-2.5 text-sm font-medium text-[var(--text-muted)] transition hover:text-[var(--text)]"
-          >
-            Collector health
-          </a>
-        </div>
+        <HeroActions />
       </section>
 
       {stats && stats.postings > 0 && (
@@ -154,8 +143,12 @@ export default async function Home(): Promise<React.ReactElement> {
               title: 'Heals are graded',
               body: 'A repaired collector is scored against the platform’s own feed. A heal that refills a field with values off the wrong element looks healthy by fill rate and is rejected here.',
             },
-          ].map((item) => (
-            <div key={item.title} className="panel p-5">
+          ].map((item, index) => (
+            <div
+              key={item.title}
+              className="panel reveal p-5"
+              style={{ '--i': index } as React.CSSProperties}
+            >
               <h3 className="text-sm font-medium">{item.title}</h3>
               <p className="mt-2 text-[13px] leading-relaxed text-[var(--text-muted)]">
                 {item.body}
