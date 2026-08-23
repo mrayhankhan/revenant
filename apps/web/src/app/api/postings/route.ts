@@ -69,6 +69,7 @@ export async function GET(request: Request): Promise<NextResponse> {
       verdict: livenessObservations.verdict,
       provenGhost: livenessObservations.provenGhost,
       reasons: livenessObservations.reasons,
+      repostCount: livenessObservations.repostCount,
       companyDomain: companies.domain,
     })
     .from(postings)
@@ -142,6 +143,7 @@ export async function GET(request: Request): Promise<NextResponse> {
         score: row.score,
         verdict: row.verdict,
         provenGhost: row.provenGhost,
+        repostCount: row.repostCount,
         reasons: safeReasons(row.reasons),
       },
     })),

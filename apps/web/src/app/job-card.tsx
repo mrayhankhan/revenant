@@ -17,7 +17,14 @@ export interface JobCardData {
   postedAt: string | null;
   applyUrl?: string | null;
   companyDomain?: string | null;
-  liveness: { score: number; verdict: Verdict; provenGhost: boolean; reasons: string[] };
+  liveness: {
+    score: number;
+    verdict: Verdict;
+    provenGhost: boolean;
+    /** Times this same role has been listed again under a fresh date. */
+    repostCount?: number;
+    reasons: string[];
+  };
   match?: { score: number; matched: string[]; missing: string[]; reasons: string[] } | undefined;
 }
 
@@ -125,6 +132,7 @@ export function JobCard({ job, index }: { job: JobCardData; index: number }): Re
   const headline = match?.score ?? liveness.score;
   const headlineColor = match ? matchColor(match.score) : VERDICT_COLOR[liveness.verdict];
   const reason = match?.reasons[0] ?? liveness.reasons[0];
+  const reposts = liveness.repostCount ?? 0;
   const company = job.company ?? 'Unknown';
   const location = displayLocation(job.location);
   const hue = companyHue(company);
@@ -173,13 +181,26 @@ export function JobCard({ job, index }: { job: JobCardData; index: number }): Re
 
           {/* A single dot is the only status on the front: enough to spot a
               dead listing while scanning, not enough to become a statistic. */}
-          <div className="mt-auto flex items-center justify-between pt-3">
+          <div className="mt-auto flex items-center justify-between gap-2 pt-3">
             <span
-              className="inline-block h-1.5 w-1.5 rounded-full"
+              className="inline-block h-1.5 w-1.5 shrink-0 rounded-full"
               style={{ background: VERDICT_COLOR[liveness.verdict] }}
               title={VERDICT_LABEL[liveness.verdict]}
             />
-            <span className="text-[11px] text-[var(--text-faint)]">Hover for detail</span>
+            {/* The repost count outranks the hover hint, and takes its place.
+                A date is the one thing everyone checks, and re-listing is what
+                makes it lie — so it has to be legible while scanning, not
+                something you find by turning the card over. */}
+            {reposts > 0 ? (
+              <span
+                className="tabular truncate rounded-md border border-[var(--aging)]/35 bg-[var(--aging)]/10 px-1.5 py-0.5 text-[10.5px] font-medium text-[var(--aging)]"
+                title={`This role has been listed again ${reposts} ${reposts === 1 ? 'time' : 'times'} under a fresh date. The date shown is the latest listing, not when the role opened.`}
+              >
+                Re-posted ×{reposts}
+              </span>
+            ) : (
+              <span className="text-[11px] text-[var(--text-faint)]">Hover for detail</span>
+            )}
           </div>
         </div>
 
@@ -219,6 +240,9 @@ export function JobCard({ job, index }: { job: JobCardData; index: number }): Re
               <span className="text-[var(--text-faint)]">Pay not listed</span>
             )}
             <span className="tabular ml-auto text-[var(--text-faint)]">
+              {reposts > 0 && (
+                <span className="text-[var(--aging)]">re-posted ×{reposts} · </span>
+              )}
               {relativeAge(job.postedAt)}
             </span>
           </div>

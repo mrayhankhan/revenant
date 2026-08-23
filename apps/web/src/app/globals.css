@@ -41,6 +41,7 @@
 
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-flip: cubic-bezier(0.33, 0.02, 0.2, 1);
 }
 
 /* ---- Type ---------------------------------------------------------------- */
@@ -239,6 +240,18 @@ body::before {
   display: block;
   height: 190px;
   perspective: 1200px;
+  /*
+   * Raised while turning, or the near edge of the card sweeps under its
+   * neighbours as it rotates and the corner is visibly clipped away by the
+   * card sitting next to it — grid children paint in source order, and a 3D
+   * transform does not change that.
+   */
+  position: relative;
+  z-index: 0;
+}
+.flip:hover,
+.flip:focus-visible {
+  z-index: 2;
 }
 
 .flip-inner {
@@ -247,7 +260,7 @@ body::before {
   width: 100%;
   transform-style: preserve-3d;
   transform: rotateY(0deg);
-  transition: transform 620ms var(--ease-in-out);
+  transition: transform 800ms var(--ease-flip);
 }
 
 /*
@@ -264,6 +277,13 @@ body::before {
 .flip:focus-visible .flip-inner {
   transform: rotateY(180deg);
   will-change: transform;
+  /*
+   * A beat before the turn starts, so crossing the grid does not set off a wave
+   * of cards flipping behind the pointer. Leave inside the delay and nothing
+   * ever moves; the delay is only on the way in, so a card turns back the
+   * instant the pointer leaves it.
+   */
+  transition-delay: 90ms;
 }
 
 .flip-face {
@@ -289,11 +309,11 @@ body::before {
   transition:
     border-color 180ms var(--ease-out),
     background 180ms var(--ease-out);
-  transform: translateZ(0);
+  transform: translateZ(0.6px);
 }
 
 .flip-back {
-  transform: rotateY(180deg) translateZ(0);
+  transform: rotateY(180deg) translateZ(0.6px);
 }
 
 /* Rounds its own corners now that the face no longer clips it. */
@@ -314,11 +334,11 @@ body::before {
  * faces at once.
  */
 .flip-face:hover {
-  transform: translateZ(0);
+  transform: translateZ(0.6px);
   box-shadow: none;
 }
 .flip-back:hover {
-  transform: rotateY(180deg) translateZ(0);
+  transform: rotateY(180deg) translateZ(0.6px);
 }
 .flip:hover .flip-face {
   border-color: var(--border-strong);
