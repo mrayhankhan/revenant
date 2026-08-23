@@ -1,179 +1,221 @@
 # Submission pack
 
-Everything needed for the form, the video and the LinkedIn post, in one place.
+Everything for the form, the video, the screenshots and the LinkedIn post.
+
+**Repo** https://github.com/mrayhankhan/revenant
+**Demo** https://revenant-jobs.vercel.app (no login)
+**Collector** `c_msyq5cea136y76lhb0`
 
 ---
 
-## 1. Demo video script — 3 minutes
+## 1. Screenshots for the README
 
-Record in one take where you can. Judges assume a cut at the interesting moment
-means the interesting moment did not happen.
+Four images into `docs/screenshots/`. The README already links the first three,
+so they appear the moment the files exist.
 
-### 0:00 — The problem (25s)
+| File | What to capture | How |
+|---|---|---|
+| `feed.png` | The feed. Set the Function filter to **Engineering** first so the grid is full of recognisable roles. Hover one card so it is caught mid-flip. | Browser at ~1440px wide, capture the viewport only, not the whole page |
+| `heal.png` | Terminal running `npm run collect`, showing the fill-rate bars and the accuracy block | Full terminal window, dark theme, make the text large enough to read on a phone |
+| `health.png` | `/health` — the per-field extraction table with baselines | Scroll so "Extraction by field" is at the top of the shot |
+| `match.png` | `/match` after clicking **Use a sample CV**, with one card's "what to add" expanded | Shows the tailoring, which is the part reviewers do not expect |
 
-> "Every job aggregator rots. Listings stay open months after the role was
-> filled, the same job shows up on five boards, and when a site changes its
-> markup a field quietly turns null — and nobody notices, because a missing
-> salary looks exactly like a job that never advertised one.
+Two things that make screenshots read as professional: capture at a **16:9-ish
+crop** rather than a tall full-page scroll, and make sure **no browser bookmarks
+bar or personal tabs** are visible.
+
+---
+
+## 2. Demo video — 3 minutes
+
+Record in one take. A cut at the interesting moment reads as the interesting
+moment not having happened.
+
+### 0:00 — The problem (30s)
+
+**Show:** the landing page, top of hero.
+
+> "Job boards go stale and nobody measures it. The obvious answer is: just look
+> at the posting date.
 >
-> Revenant treats a posting as a decaying object."
+> That does not work. Companies re-post roles and the clock resets. In the eleven
+> thousand postings I collected, a hundred and seventeen listings are under two
+> weeks old and are re-lists of a role first posted over a month earlier. One role
+> has been re-listed across six and a half years.
+>
+> The listings that waste your time look like the freshest ones on the board."
 
-### 0:25 — The feed (35s)
+### 0:30 — Scroll the story (25s)
 
-Open `/feed`. Point at the counts.
+**Show:** scroll slowly through the five chapters. Let each land.
 
-> "3,509 real postings from 15 company boards. Live, aging, stale — and every
-> score carries its reason."
+> "So Revenant checks each posting against the company's own careers board. Gone
+> from their board but still listed elsewhere is not a guess — that is the company
+> contradicting the listing."
 
-Click **stale**. Open one card.
+### 0:55 — The feed (35s)
 
-> "Open for 107 days. Re-posted twice. That's not a guess, it's the posting's
-> own history."
+**Show:** `/feed`. Set Function to Engineering. Hover a card so it flips.
 
-### 1:00 — Match against a CV (35s)
+> "Five thousand three hundred live postings from ninety-six company boards, all
+> collected with Bright Data Scraper Studio. Filter by function, work mode, level,
+> company.
+>
+> Every card carries a liveness score and the reason behind it — not just a
+> number."
 
-Open `/match`, click **Use a sample CV**.
+Click **Stale** in the verdict filter, open one card.
 
-> "It scored 1,500 live postings in under a second. No model call — it names
-> the exact skills that matched, and the ones the posting asked for that the CV
-> doesn't mention."
+> "Open for a hundred and seven days. Re-posted twice."
 
-Expand **What to add**.
+### 1:30 — Match (30s)
 
-> "And every suggestion quotes the sentence in the posting that motivates it.
-> We stop here — Revenant never applies for you."
+**Show:** `/match`, click **Use a sample CV**, expand one "what to add".
 
-### 1:35 — Scraper Studio, and the number that matters (35s)
+> "Paste a CV and every live posting is scored against it. No model call — it
+> names the exact skills that matched, and the ones the posting asks for that your
+> CV does not mention.
+>
+> Every suggestion quotes the sentence in the posting that motivates it. And it
+> stops here: Revenant never applies on your behalf."
 
-Show the terminal, run `npm run collect`.
+### 2:00 — Scraper Studio, and the number that matters (40s)
 
-> "This is a Scraper Studio collector on the rendered board HTML. Watch the
+**Show:** terminal. Run `npm run collect -w @revenant/core -- greenhouse https://job-boards.greenhouse.io/vercel`
+
+> "This is the Scraper Studio collector running against Vercel's board. Watch the
 > salary field.
 >
-> Greenhouse's structured API carries zero compensation across all 3,509
-> postings. Pay-transparency law puts the range in the description prose — so
-> Scraper Studio extracts it from the page. 43 of 50. Zero to 86 percent.
-> That's why we scrape the page instead of consuming the API."
-
-### 2:10 — Self-healing, graded (40s)
-
-Split screen: chaos target on the left, terminal on the right.
-
-```bash
-npm run heal -w @revenant/core -- chaos <url>   # baseline
-curl <url>/chaos/flip                           # redesign, live
-npm run heal -w @revenant/core -- chaos <url>   # detect, heal, grade
-```
-
-> "Same URL. The markup just changed underneath it — every class renamed, the
-> salary nested and split.
+> Greenhouse's structured API carries zero compensation — nought out of eleven
+> thousand postings. Pay-transparency law puts the range in the description prose,
+> so Scraper Studio extracts it from the page instead. Forty-three of fifty.
 >
-> The fill rate collapses against the baseline, so we ask Scraper Studio to
-> heal. It proposes a fix and parks it at an approval gate.
+> Zero to eighty-six percent. That is why this scrapes the rendered page rather
+> than consuming the API."
+
+Point at the accuracy block.
+
+> "And it is graded — a hundred percent on every field the page actually shows,
+> scored against Greenhouse's own feed."
+
+### 2:40 — Self-healing (15s)
+
+**Show:** `/health`, then the heal section of the README or the landing animation.
+
+> "When a board changes shape and extraction drops below its baseline, Scraper
+> Studio proposes a fix and parks it at an approval gate. I deliberately do not
+> auto-approve — a heal can bind to the wrong element, refill the field perfectly
+> and return the wrong value.
 >
-> We don't auto-approve. A heal that latches onto the wrong element refills the
-> field perfectly and returns the department where the location used to be —
-> fill rate calls that a success. So we re-run, grade it against the platform's
-> own feed, and only then approve."
+> So the fix is re-run and graded against the platform's own feed before it is
+> accepted. Anyone can call self-heal. This is what lets me say why I rejected
+> one."
 
-### 2:50 — Close (10s)
+### 2:55 — Close (5s)
 
-> "Anyone can call self-heal. We're the only ones who can tell you why we
-> rejected one."
+> "Public data in, human decision out. It never applies for you."
 
 ---
 
-## 2. LinkedIn post
+## 3. LinkedIn post
 
-> Job boards rot, and nobody measures it.
+Tag **WeMakeDevs** and **Bright Data**. Judged on quality, not engagement.
+
+> Everyone says: just check the posting date.
 >
-> A listing stays "open" months after the role was filled. The same job appears
-> on five boards. And when a site changes its markup, a field quietly turns null
-> — invisible, because a missing salary looks exactly like a job that never
-> advertised one.
+> I collected 11,153 job postings to see whether that works. It does not.
 >
-> So for Into the Scrape-Verse I built Revenant: a job feed that knows which
-> listings are already dead.
+> 1,015 roles appear more than once. 117 listings are under two weeks old and are
+> re-lists of a role first posted over a month earlier. One role has been
+> re-listed across 2,404 days.
 >
-> Two things I learned building it.
+> Companies re-post and the clock resets — so the listings that waste your time
+> look like the freshest ones on the board.
 >
-> 1️⃣ Compensation is in the page, not the API.
+> So for Into the Scrape-Verse I built Revenant: it checks each posting against
+> the company's own careers board. Gone from their board but still listed
+> elsewhere is not a guess. That is the company contradicting the listing.
 >
-> Greenhouse's structured feed carries no salary field at all — 0 out of 3,509
-> postings I collected. But pay-transparency law requires the range to appear in
-> the posting, so it lands in the description prose.
+> Two things I learned building it with Bright Data Scraper Studio.
 >
-> Bright Data Scraper Studio extracts it from the rendered page: 43 of 50. Zero
-> to 86%. That single measurement is the whole argument for scraping pages
-> instead of consuming APIs.
+> 1) Compensation is in the page, not the API.
 >
-> 2️⃣ "It healed" is not the same as "it healed correctly."
+> Greenhouse's structured feed has no salary field at all — 0 of 11,153 postings.
+> Pay-transparency law still requires the range to appear, so it lands in the
+> description prose. Scraper Studio pulls it out of the rendered page: 43 of 50 on
+> one board. Zero to 86%.
+>
+> That single measurement is the whole argument for scraping pages instead of
+> consuming APIs.
+>
+> 2) "It healed" is not the same as "it healed correctly."
 >
 > `bdata scraper heal` parks a proposed fix at an approval gate. The obvious move
-> is --auto-approve. I deliberately didn't.
+> is --auto-approve. I deliberately did not.
 >
-> A heal that re-binds to the wrong element restores the fill rate perfectly
-> while returning a job's department where its location used to be. Fill-rate
+> A heal can re-bind to the wrong element: the fill rate recovers perfectly while
+> the field returns a job's department where its location used to be. Fill-rate
 > monitoring calls that a success.
 >
-> So Revenant leaves the gate closed, re-runs the collector, grades the result
-> against the ATS platform's own JSON feed, and approves or rejects on measured
-> accuracy. Anyone can call self-heal. This is what lets me say why I rejected
-> one.
+> So the fix is re-run and graded against the ATS platform's own feed, and only
+> approved if accuracy actually improved.
 >
-> Also in there: ghost-job detection that requires proof (a role is only called
-> dead when the company's own board contradicts the listing), and CV matching
-> that names the exact skills you're missing rather than handing you a number.
+> 5,348 live postings · 96 company boards · Greenhouse, Lever and Ashby · 149 tests
 >
-> It never applies on your behalf. Public data in, human decision out.
+> Live, no login: https://revenant-jobs.vercel.app
+> Code: https://github.com/mrayhankhan/revenant
 >
-> 135 tests. Built with Claude Code, disclosed in the README.
->
-> Repo: <your-repo-url>
+> Built with Claude Code, disclosed in the README.
 >
 > #ScrapeVerse #BrightData #WeMakeDevs
 
-**Post it with a screenshot of `/health` or the heal terminal output** — the
-numbers are the hook, not the logo.
+Post it with the `/health` screenshot or the terminal output. The numbers are the
+hook.
 
 ---
 
-## 3. Form checklist
+## 4. Form answers
 
-| Field | Answer |
-|---|---|
-| Repo | `https://github.com/mrayhankhan/revenant` |
-| Demo video | (link) |
-| Structured output | `docs/sample-output.json` — 50 real postings |
-| Scraper Studio use | See README § "How Scraper Studio is used" |
-| AI disclosure | Claude Code, disclosed in README § "AI assistance" |
-| Public data only | Public ATS boards. No auth, no paywall, no government sites. |
+Do not write N/A anywhere — that was called out on the livestream.
 
-### Collector
+**What does your project do?**
+> Revenant is a job feed that tells you which listings are already dead. It
+> scrapes public ATS job boards with Bright Data Scraper Studio, then checks each
+> posting against the company's own careers board — a role that is gone from
+> their board but still listed elsewhere is provably dead, not merely old. It also
+> recovers salary that the ATS APIs do not carry, and ranks postings against your
+> CV without ever applying on your behalf.
 
-```
-c_msyq5cea136y76lhb0   greenhouse board HTML
-```
+**How did you use Bright Data Scraper Studio?**
+> I built a custom collector (`c_msyq5cea136y76lhb0`) with
+> `bdata scraper create`, using one plain-English field spec reused across
+> Greenhouse, Lever and Ashby boards. It scrapes the rendered board HTML rather
+> than the platforms' JSON APIs, for two reasons: the APIs carry no compensation
+> field at all, and an API that never changes shape gives self-healing nothing to
+> do. `bdata scraper run` collects, and `bdata scraper heal` repairs — without
+> `--auto-approve`, because the proposed fix is re-run and graded against the ATS
+> platform's own feed before `bdata scraper approve` accepts it. The collector ID
+> feeds a SQLite database and a Next.js app.
 
-### Numbers worth quoting
+**Which websites did you scrape?**
+> Public ATS job boards: `job-boards.greenhouse.io`, `jobs.lever.co` and
+> `jobs.ashbyhq.com` for 96 companies including Stripe, Anthropic, Cloudflare,
+> Databricks and Ramp. All public, no login, no paywall, no personal data, no
+> government sites.
 
-```
-3,509 postings · 15 company boards · 108 duplicates collapsed
-salary:   0/3,509 via ATS API   →   43/50 via Scraper Studio   (0% → 86%)
-accuracy vs ground truth: 100% on title, location, applyUrl, description
-matching: 1,500 postings scored per request, no model call
-135 tests
-```
+**AI disclosure**
+> Built with Claude Code (Claude Opus 5). I directed the architecture and design
+> decisions and can explain every part of the codebase. Every number in the README
+> came from running the code.
 
 ---
 
-## 4. Order of operations
+## 5. Order of operations
 
-1. `gh auth login`, make the repo public, push
-2. **Submit the form now** — it accepts updates until the deadline
-3. Record the video
-4. Update the submission with the video link
-5. Post on LinkedIn, tag WeMakeDevs
+1. Submit the form now with the repo and demo links
+2. Take the four screenshots, commit them
+3. Record the video, update the submission
+4. Post on LinkedIn
 
-Submitting early costs nothing and guarantees the certificate and Top-50 swag.
-Leaving it to the last hour risks everything built this week.
+The form accepts edits until the deadline, so submitting first costs nothing and
+removes the risk of losing the week's work to a clock.
