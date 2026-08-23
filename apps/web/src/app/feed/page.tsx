@@ -4,10 +4,22 @@ import { useEffect, useMemo, useState } from 'react';
 import clsx from 'clsx';
 
 import { useProfile } from '../../lib/profile';
+import { classifyLevel, classifyWorkMode, WORK_MODES } from '@revenant/core/match/classify';
+import type { ExperienceLevel, WorkMode } from '@revenant/core/match/classify';
+
 import { JobCard, VERDICT_COLOR } from '../job-card';
 import type { JobCardData, Verdict } from '../job-card';
 
 type Posting = JobCardData & { applyUrl: string | null };
+
+/** Labelled so the chips read the way a job seeker would say them. */
+const LEVEL_OPTIONS: { value: ExperienceLevel; label: string }[] = [
+  { value: 'intern', label: 'Internship' },
+  { value: 'entry', label: 'Entry / fresher' },
+  { value: 'mid', label: 'Mid' },
+  { value: 'senior', label: 'Senior' },
+  { value: 'lead', label: 'Lead / staff' },
+];
 
 interface FeedResponse {
   counts: Record<Verdict | 'all', number>;
@@ -78,6 +90,8 @@ export default function FeedPage(): React.ReactElement {
   const [filter, setFilter] = useState<Verdict | 'all'>('all');
   const [query, setQuery] = useState('');
   const [company, setCompany] = useState<string | null>(null);
+  const [workMode, setWorkMode] = useState<WorkMode | null>(null);
+  const [level, setLevel] = useState<ExperienceLevel | null>(null);
   const [personalised, setPersonalised] = useState(false);
 
   useEffect(() => {
@@ -165,8 +179,18 @@ export default function FeedPage(): React.ReactElement {
       });
     }
 
-    return company === null ? rows : rows.filter((row) => row.company === company);
-  }, [data, personalised, filter, query, company]);
+    if (company !== null) rows = rows.filter((row) => row.company === company);
+
+    if (workMode !== null) {
+      rows = rows.filter((row) => classifyWorkMode(row.remotePolicy, row.location) === workMode);
+    }
+
+    if (level !== null) {
+      rows = rows.filter((row) => classifyLevel(row.title, row.employmentType) === level);
+    }
+
+    return rows;
+  }, [data, personalised, filter, query, company, workMode, level]);
 
   const total = useCountUp(counts.all);
   const decaying = counts.ghost + counts.stale;
@@ -232,6 +256,52 @@ export default function FeedPage(): React.ReactElement {
           value={query}
           onChange={(event) => setQuery(event.target.value)}
         />
+      </div>
+
+      {/* Work mode and experience level, which is what people filter on before
+          anything else. Both are inferred from the title and location, because
+          the structured fields are filled on only a minority of postings. */}
+      <div className="flex flex-wrap items-center gap-1.5">
+        <span className="mr-1 text-[11px] uppercase tracking-wide text-[var(--text-faint)]">
+          Work
+        </span>
+        {WORK_MODES.map((mode) => (
+          <button
+            key={mode}
+            className="chip capitalize"
+            data-selected={workMode === mode}
+            onClick={() => setWorkMode(workMode === mode ? null : mode)}
+          >
+            {mode}
+          </button>
+        ))}
+
+        <span className="ml-4 mr-1 text-[11px] uppercase tracking-wide text-[var(--text-faint)]">
+          Level
+        </span>
+        {LEVEL_OPTIONS.map(({ value, label }) => (
+          <button
+            key={value}
+            className="chip"
+            data-selected={level === value}
+            onClick={() => setLevel(level === value ? null : value)}
+          >
+            {label}
+          </button>
+        ))}
+
+        {(workMode || level || company) && (
+          <button
+            className="btn btn-quiet ml-2 !py-1 !text-[12px]"
+            onClick={() => {
+              setWorkMode(null);
+              setLevel(null);
+              setCompany(null);
+            }}
+          >
+            Clear
+          </button>
+        )}
       </div>
 
       {/* Companies, with counts. Filtering by employer is the first thing

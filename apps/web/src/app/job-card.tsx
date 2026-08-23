@@ -15,6 +15,7 @@ export interface JobCardData {
   salaryCurrency: string | null;
   employmentType: string | null;
   postedAt: string | null;
+  applyUrl?: string | null;
   liveness: { score: number; verdict: Verdict; provenGhost: boolean; reasons: string[] };
   match?: { score: number; matched: string[]; missing: string[]; reasons: string[] } | undefined;
 }
@@ -82,6 +83,30 @@ function companyHue(name: string): number {
   return hash;
 }
 
+/** Hosts that belong to the ATS, not to the employer. */
+const ATS_HOSTS = /(greenhouse\.io|lever\.co|ashbyhq\.com|workable\.com|myworkdayjobs\.com)$/i;
+
+/**
+ * A favicon for the employer, or null.
+ *
+ * Many companies white-label their board, so the apply link points at their own
+ * domain — which is a reliable way to find their mark. Where the link stays on
+ * the ATS there is nothing to derive, and the lettered mark is used instead.
+ * Guessing `company.com` was rejected: it is wrong often enough (notion.so,
+ * ramp.com vs ramp.co) to put the wrong logo on a job, which is worse than none.
+ */
+function logoUrl(applyUrl: string | null | undefined): string | null {
+  if (!applyUrl) return null;
+
+  try {
+    const host = new URL(applyUrl).hostname.replace(/^www\./, '');
+    if (ATS_HOSTS.test(host)) return null;
+    return `https://www.google.com/s2/favicons?sz=64&domain=${host}`;
+  } catch {
+    return null;
+  }
+}
+
 /**
  * A job as a flip card.
  *
@@ -101,6 +126,7 @@ export function JobCard({ job, index }: { job: JobCardData; index: number }): Re
   const company = job.company ?? 'Unknown';
   const location = displayLocation(job.location);
   const hue = companyHue(company);
+  const logo = logoUrl(job.applyUrl);
 
   return (
     <a
@@ -112,9 +138,12 @@ export function JobCard({ job, index }: { job: JobCardData; index: number }): Re
       <div className="flip-inner">
         {/* ---- Front: identity only ------------------------------------- */}
         <div className={clsx('flip-face card flex flex-col', `is-${liveness.verdict}`)}>
+          {/* The lettered mark sits underneath; the logo covers it when it
+              loads, and simply never appears when it does not. No flash of a
+              broken image, no layout shift. */}
           <span
             aria-hidden
-            className="grid h-10 w-10 place-items-center rounded-lg text-[14px] font-semibold"
+            className="relative grid h-10 w-10 place-items-center overflow-hidden rounded-lg text-[14px] font-semibold"
             style={{
               background: `hsl(${hue} 45% 16%)`,
               color: `hsl(${hue} 70% 72%)`,
@@ -122,6 +151,17 @@ export function JobCard({ job, index }: { job: JobCardData; index: number }): Re
             }}
           >
             {company.slice(0, 2).toUpperCase()}
+            {logo && (
+              <img
+                src={logo}
+                alt=""
+                loading="lazy"
+                className="absolute inset-0 h-full w-full bg-white/95 object-contain p-1.5"
+                onError={(event) => {
+                  event.currentTarget.style.display = 'none';
+                }}
+              />
+            )}
           </span>
 
           <h3 className="mt-3 line-clamp-3 text-[15px] font-medium leading-snug">

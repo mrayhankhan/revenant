@@ -1,26 +1,79 @@
 # Companies Revenant tracks.
 #
-# Each line resolves to a public ATS board via `npm run discover`. Slugs are
-# confirmed against the platform's own free feed before any collector loads the
-# page, so a wrong guess here costs nothing.
-#
-# Add freely — the pipeline is bounded by credits, not by this list.
+# Each name is resolved to a public ATS board by `npm run discover`, which
+# confirms the slug against the platform's own free feed before any scraper
+# runs. A wrong guess here costs nothing.
 
+# --- Developer tools and infrastructure ---
 Stripe
 Vercel
-Ramp
+Cloudflare
+Datadog
+Databricks
+Snowflake
+MongoDB
+Elastic
+HashiCorp
+GitLab
+Confluent
+Grafana Labs
+Redis
+Supabase
+Netlify
+Twilio
+Sentry
+CircleCI
+DigitalOcean
+Fastly
+
+# --- AI ---
 Anthropic
+Scale AI
+Hugging Face
+Weights & Biases
+Runway
+Perplexity
+
+# --- Fintech ---
+Coinbase
+Robinhood
+Ramp
+Brex
+Plaid
+Affirm
+Chime
+Marqeta
+Wise
+Klarna
+
+# --- Product and consumer ---
 Figma
 Notion
-Databricks
+Airtable
+Asana
 Discord
 Reddit
 Duolingo
-Robinhood
 Instacart
-Airtable
-Asana
-Cloudflare
-Datadog
+DoorDash
+Lyft
+Pinterest
+Squarespace
 Grammarly
-Coinbase
+Calendly
+Loom
+Miro
+Webflow
+Canva
+
+# --- Healthcare, security, other ---
+Oscar Health
+Included Health
+Benchling
+Cedar
+1Password
+Snyk
+Vanta
+Rippling
+Gusto
+Carta
