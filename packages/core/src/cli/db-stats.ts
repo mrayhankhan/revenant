@@ -22,6 +22,21 @@ async function main(): Promise<void> {
   `);
   for (const row of counts) console.log(`${row.name.padEnd(24)} ${row.n}`);
 
+  console.log('\nboards by platform');
+  const platforms = await database.all<{ platform: string; companies: number; postings: number }>(sql`
+    select
+      c.platform,
+      count(distinct c.slug) as companies,
+      count(p.id) as postings
+    from companies c
+    left join postings p on p.company_slug = c.slug
+    group by c.platform
+    order by postings desc
+  `);
+  for (const row of platforms) {
+    console.log(`  ${row.platform.padEnd(12)} ${row.companies} boards, ${row.postings} postings`);
+  }
+
   console.log('\nverdict distribution');
   const verdicts = await database.all<{ verdict: string; n: number }>(sql`
     select verdict, count(*) as n from liveness_observations group by verdict order by n desc
