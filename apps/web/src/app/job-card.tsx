@@ -179,40 +179,55 @@ export function JobCard({ job, index }: { job: JobCardData; index: number }): Re
         <span className="tabular ml-auto text-[var(--text-faint)]">{relativeAge(job.postedAt)}</span>
       </div>
 
-      {/* ---- Matched skills, which is what a candidate scans for ----------- */}
-      {match && match.matched.length > 0 && (
-        <div className="flex flex-wrap gap-1">
-          {match.matched.slice(0, 4).map((skill) => (
-            <span
-              key={skill}
-              className="rounded-md border border-[var(--border)] bg-[var(--surface-raised)] px-1.5 py-0.5 text-[11px] text-[var(--text-muted)]"
-            >
-              {skill}
-            </span>
-          ))}
-          {match.matched.length > 4 && (
-            <span className="px-1 py-0.5 text-[11px] text-[var(--text-faint)]">
-              +{match.matched.length - 4}
-            </span>
-          )}
-        </div>
-      )}
+      {/*
+        Detail that expands on hover.
 
-      {/* ---- Why this score, which is the part worth acting on -------------- */}
-      {reason && (
-        <p
-          className={clsx(
-            'mt-auto line-clamp-2 border-t border-[var(--border)] pt-2.5 text-[12px] leading-relaxed',
-            liveness.provenGhost ? 'verdict-ghost font-medium' : 'text-[var(--text-muted)]',
-          )}
-        >
-          {liveness.provenGhost && '✕ '}
-          {reason}
-        </p>
-      )}
+        Hiding the essentials until hover would mean less information per screen,
+        which is the opposite of why cards were chosen. So identity, pay and
+        status stay visible always, and this reveals the supporting detail —
+        matched skills and the reason behind the score — for the one card being
+        considered. It is expanded by default on touch, where there is no hover.
+      */}
+      <div className="card-detail">
+        {match && match.matched.length > 0 && (
+          <div className="mb-2 flex flex-wrap gap-1">
+            {match.matched.slice(0, 5).map((skill) => (
+              <span
+                key={skill}
+                className="rounded-md border border-[var(--border)] bg-[var(--surface-raised)] px-1.5 py-0.5 text-[11px] text-[var(--text-muted)]"
+              >
+                {skill}
+              </span>
+            ))}
+            {match.matched.length > 5 && (
+              <span className="px-1 py-0.5 text-[11px] text-[var(--text-faint)]">
+                +{match.matched.length - 5}
+              </span>
+            )}
+          </div>
+        )}
+
+        {match && match.missing.length > 0 && (
+          <p className="mb-2 text-[11.5px] leading-relaxed text-[var(--text-faint)]">
+            Missing: {match.missing.slice(0, 3).join(', ')}
+          </p>
+        )}
+
+        {reason && (
+          <p
+            className={clsx(
+              'line-clamp-3 text-[12px] leading-relaxed',
+              liveness.provenGhost ? 'verdict-ghost font-medium' : 'text-[var(--text-muted)]',
+            )}
+          >
+            {liveness.provenGhost && '✕ '}
+            {reason}
+          </p>
+        )}
+      </div>
 
       {/* ---- Status, always in the same corner so it can be scanned -------- */}
-      <div className="flex items-center justify-between text-[11px]">
+      <div className="mt-auto flex items-center justify-between border-t border-[var(--border)] pt-2.5 text-[11px]">
         <span className="inline-flex items-center gap-1.5" style={{ color: VERDICT_COLOR[liveness.verdict] }}>
           <span
             className="inline-block h-1.5 w-1.5 rounded-full"

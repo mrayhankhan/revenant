@@ -44,6 +44,15 @@ const VERDICT_COLOR: Record<Verdict, string> = {
   ghost: 'var(--ghost)',
 };
 
+/** Hostname without the www, for labelling an outbound link. */
+function hostOf(url: string): string {
+  try {
+    return new URL(url).hostname.replace(/^www\./, '');
+  } catch {
+    return 'the original posting';
+  }
+}
+
 function Fact({ label, value }: { label: string; value: React.ReactNode }): React.ReactElement {
   return (
     <div>
@@ -59,7 +68,9 @@ function formatSalary(listing: Listing): string {
     return 'Not advertised';
   }
   const currency = salaryCurrency ?? '';
-  const fmt = (v: number): string => v.toLocaleString();
+  // Pinned to en-US: the default follows the host locale, so the same salary
+  // renders as 182,208 on one machine and 1,82,208 on another.
+  const fmt = (v: number): string => v.toLocaleString('en-US');
   if (salaryMin !== null && salaryMax !== null) {
     return `${currency} ${fmt(salaryMin)} – ${fmt(salaryMax)}`.trim();
   }
@@ -255,9 +266,15 @@ export default function ListingPage({
             href={listing.applyUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="rounded-lg border border-[var(--border-strong)] bg-[var(--surface-raised)] px-5 py-2.5 text-sm font-medium text-[var(--text)] transition hover:border-[var(--accent)]"
+            className="btn"
           >
-            Open the original posting ↗
+            {/*
+              Naming the destination host matters here. Greenhouse returns each
+              company's canonical URL, and most white-label it — so the link
+              lands on careers.duolingo.com rather than greenhouse.io, which
+              looks like a broken redirect unless the button says so.
+            */}
+            Apply on {hostOf(listing.applyUrl)} ↗
           </a>
         )}
         {listing.boardUrl && (

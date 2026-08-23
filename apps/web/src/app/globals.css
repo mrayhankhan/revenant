@@ -172,6 +172,51 @@ body::before {
   filter: none;
 }
 
+/* ---- Card detail, revealed on hover -------------------------------------- */
+
+/*
+ * Collapsed until the card is hovered or focused. Uses grid-template-rows rather
+ * than max-height so the transition is exact regardless of content length — a
+ * guessed max-height either clips long text or eases against empty space.
+ */
+.card-detail {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition:
+    grid-template-rows 260ms var(--ease-out),
+    opacity 200ms var(--ease-out);
+}
+
+.card-detail > * {
+  overflow: hidden;
+  min-height: 0;
+}
+
+.card:hover .card-detail,
+.card:focus-visible .card-detail,
+.card:focus-within .card-detail {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+
+/*
+ * Anything without hover — touch — gets the detail permanently. A reveal that
+ * requires a pointer would simply hide the content on a phone.
+ */
+@media (hover: none) {
+  .card-detail {
+    grid-template-rows: 1fr;
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card-detail {
+    transition: none;
+  }
+}
+
 /* ---- Reveal on arrival --------------------------------------------------- */
 
 /*
