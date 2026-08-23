@@ -25,11 +25,22 @@ import { databaseUrl, db } from '../db/index.js';
 /**
  * Postings kept per company.
  *
- * Tuned against the bundle rather than chosen: at 60 across eighty-odd boards
- * the snapshot passed 40MB, which is a slow cold start for a page that has to
- * open quickly in front of a judge.
+ * Sampling per company rather than globally keeps every board represented; taking
+ * the first N overall would fill the snapshot with whichever company was ingested
+ * first and quietly drop the rest.
  */
-const PER_COMPANY = 32;
+const PER_COMPANY = 90;
+
+/**
+ * Descriptions are trimmed in the snapshot, which is what allows three times as
+ * many postings to ship in the same space.
+ *
+ * Nothing depends on the tail. Compensation has already been parsed out into its
+ * own columns by this point, and skill matching reads the requirements, which
+ * sit near the top of a job description. The full text remains in the working
+ * database and behind the apply link.
+ */
+const DESCRIPTION_LIMIT = 2400;
 
 const TABLES = [
   'companies',
@@ -98,6 +109,15 @@ async function main(): Promise<void> {
       sql.raw(`select * from ${table}${where ? ` where ${where}` : ''}`),
     );
     if (rows.length === 0) return 0;
+
+    if (table === 'postings') {
+      for (const row of rows) {
+        const description = row['description_html'];
+        if (typeof description === 'string' && description.length > DESCRIPTION_LIMIT) {
+          row['description_html'] = `${description.slice(0, DESCRIPTION_LIMIT)}…`;
+        }
+      }
+    }
 
     const columns = Object.keys(rows[0] as Record<string, unknown>);
     // Batched, because one statement per row over tens of thousands of rows is
