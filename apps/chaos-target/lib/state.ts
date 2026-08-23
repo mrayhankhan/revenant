@@ -25,10 +25,24 @@ function restConfig(): { url: string; token: string } | null {
 }
 
 export function isPersistent(): boolean {
-  return restConfig() !== null;
+  const pinned = process.env['CHAOS_LAYOUT']?.toLowerCase();
+  // A pinned layout is as consistent as a store, and more so than memory.
+  return pinned === 'a' || pinned === 'b' || restConfig() !== null;
 }
 
 export async function getLayout(): Promise<Layout> {
+  /*
+   * An environment variable pins the layout, and wins over everything.
+   *
+   * Without a KV store the in-memory flag only holds within one serverless
+   * instance, so a flip appears to work and then randomly does not — which is
+   * the worst possible behaviour to discover while recording. Setting
+   * CHAOS_LAYOUT and redeploying is slower than a flip but is the same for every
+   * request, which is what a demonstration needs.
+   */
+  const pinned = process.env['CHAOS_LAYOUT']?.toLowerCase();
+  if (pinned === 'a' || pinned === 'b') return pinned;
+
   const config = restConfig();
   if (!config) return inMemory;
 

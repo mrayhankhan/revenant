@@ -98,6 +98,65 @@ export function renderBoard(layout: Layout): string {
 }
 
 /**
+ * A single job page, in whichever layout is live.
+ *
+ * The salary sits in the same markup the board uses for it, so a redesign breaks
+ * extraction here too — which is the point, since this is the page a scraper
+ * follows to read the description.
+ */
+export function renderJob(role: Role, layout: Layout): string {
+  const pay =
+    role.min === null || role.max === null
+      ? '<p class="job-pay">Compensation not disclosed for this role.</p>'
+      : layout === 'b'
+        ? `<p class="compensation">
+             <span class="amount">${money(role.min, role.currency)}</span>
+             <span class="separator">to</span>
+             <span class="amount">${money(role.max, role.currency)}</span>
+             <span class="period">per year</span>
+           </p>`
+        : `<p class="job-pay">${money(role.min, role.currency)} – ${money(role.max, role.currency)} per year</p>`;
+
+  const meta =
+    layout === 'b'
+      ? `<dl class="posting-row__attrs">
+           <dt>Posted</dt><dd class="attr-date">Posted ${role.posted}</dd>
+           <dt>Location</dt><dd class="attr-place">${role.location}</dd>
+           <dt>Arrangement</dt><dd class="attr-arrangement">${role.workplace}</dd>
+           <dt>Contract</dt><dd class="attr-contract">${role.type}</dd>
+         </dl>`
+      : `<p class="job-meta">
+           <span class="job-location">${role.location}</span>
+           <span class="job-workplace">${role.workplace}</span>
+           <span class="job-type">${role.type}</span>
+           <span class="job-posted">Posted ${role.posted}</span>
+         </p>`;
+
+  return `<!doctype html>
+<html lang="en"><head><meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>${role.title} — Northwind Robotics</title><style>${STYLES}</style></head>
+<body>
+  <header><div class="wrap"><h1>Northwind Robotics</h1><p class="sub">Open roles</p></div></header>
+  <main class="wrap">
+    <article class="${layout === 'b' ? 'posting-row' : 'job-card'}">
+      <h2 class="${layout === 'b' ? 'posting-row__heading' : 'job-title'}">${role.title}</h2>
+      ${meta}
+      ${pay}
+      <div class="${layout === 'b' ? 'posting-row__summary' : 'job-blurb'}">
+        <p>${role.blurb}</p>
+        <p>You will join a small team and own your area end to end. We care about
+        clear writing, tested code and shipping things that work in the field.</p>
+        <p>Northwind Robotics builds warehouse automation for logistics operators
+        across Europe.</p>
+      </div>
+      <p><a href="/">Back to all roles</a></p>
+    </article>
+  </main>
+</body></html>`;
+}
+
+/**
  * The structured feed, published beside the rendered board exactly as
  * Greenhouse, Lever and Ashby publish theirs.
  *

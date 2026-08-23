@@ -4,6 +4,7 @@ import type { RawPosting } from '../schema/posting.js';
 import {
   DEFAULT_DRIFT_OPTIONS,
   detectDrift,
+  detectRowCollapse,
   fieldsNeedingHeal,
   sampleRun,
   updateBaseline,
@@ -158,6 +159,37 @@ describe('updateBaseline', () => {
     const empty = { field: 'salaryMin' as const, filled: 0, total: 0 };
 
     expect(updateBaseline(before, empty)).toEqual(before);
+  });
+});
+
+/*
+ * Field drift needs rows to measure across, so a run that matches nothing
+ * produces no evidence about any field. A live redesign of the chaos target
+ * broke extraction completely — 0 rows against a 60-row baseline — and the loop
+ * reported "no drift, extraction is healthy". The row count has to be judged on
+ * its own.
+ */
+describe('detectRowCollapse', () => {
+  it('calls an empty run broken when the collector normally returns rows', () => {
+    const verdict = detectRowCollapse(0, 60);
+
+    expect(verdict.kind).toBe('broken');
+    expect(verdict.reason).toContain('returned nothing');
+  });
+
+  it('calls a large shortfall degraded', () => {
+    expect(detectRowCollapse(12, 60).kind).toBe('degraded');
+  });
+
+  it('leaves a normal run alone', () => {
+    expect(detectRowCollapse(58, 60).kind).toBe('healthy');
+    expect(detectRowCollapse(64, 60).kind).toBe('healthy');
+  });
+
+  // A collector that has only ever seen a handful of rows may simply be pointed
+  // at a small board.
+  it('refuses to judge against too little history', () => {
+    expect(detectRowCollapse(0, 3).kind).toBe('insufficient_data');
   });
 });
 

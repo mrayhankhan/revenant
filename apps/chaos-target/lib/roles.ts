@@ -20,7 +20,74 @@ export interface Role {
   blurb: string;
 }
 
-export const ROLES: Role[] = [
+/**
+ * Additional roles, generated so the board is the size of a real one.
+ *
+ * Six listings is not enough to judge drift on: a baseline built from six
+ * observations is thrown out as insufficient evidence, and correctly so — the
+ * detector refuses to call a field broken on a handful of rows. A board of sixty
+ * gives one collection run enough weight to be compared against.
+ *
+ * Roughly one in six advertises no salary, which keeps a legitimately empty
+ * field in every run — the case that must never be read as breakage.
+ */
+function generated(): Role[] {
+  const titles = [
+    'Robotics Software Engineer',
+    'Perception Engineer',
+    'Controls Engineer',
+    'Mechanical Design Engineer',
+    'Electrical Engineer, Power Systems',
+    'Simulation Engineer',
+    'Fleet Operations Analyst',
+    'Manufacturing Test Engineer',
+    'Supply Chain Planner',
+    'Technical Account Manager',
+    'Field Service Engineer',
+    'Data Engineer, Telemetry',
+    'Safety Engineer',
+    'Systems Integration Engineer',
+    'Motion Planning Researcher',
+    'Hardware Reliability Engineer',
+    'Customer Success Manager',
+    'Finance Analyst',
+  ];
+
+  const places: [string, Role['workplace'], string][] = [
+    ['Berlin, Germany', 'Hybrid', 'EUR'],
+    ['Rotterdam, Netherlands', 'On-site', 'EUR'],
+    ['Zurich, Switzerland', 'On-site', 'CHF'],
+    ['Remote, Europe', 'Remote', 'EUR'],
+    ['Munich, Germany', 'Hybrid', 'EUR'],
+    ['Copenhagen, Denmark', 'On-site', 'DKK'],
+  ];
+
+  return titles.flatMap((title, index) => {
+    const place = places[index % places.length] as [string, Role['workplace'], string];
+    const seniorities = ['', 'Senior ', 'Staff '];
+
+    return seniorities.map((prefix, tier) => {
+      const base = 70_000 + tier * 25_000 + (index % 5) * 4_000;
+      // Every sixth role publishes nothing, so each run contains real absences.
+      const unpaid = (index + tier) % 6 === 0;
+
+      return {
+        id: `nr-${5000 + index * 10 + tier}`,
+        title: `${prefix}${title}`,
+        location: place[0],
+        workplace: place[1],
+        type: index % 9 === 0 ? ('Contract' as const) : ('Full-time' as const),
+        posted: `2026-0${(index % 3) + 6}-${String((index % 27) + 1).padStart(2, '0')}`,
+        min: unpaid ? null : base,
+        max: unpaid ? null : base + 30_000,
+        currency: unpaid ? null : place[2],
+        blurb: `Own ${title.toLowerCase()} work across our warehouse fleet, from design through to deployment on customer sites.`,
+      };
+    });
+  });
+}
+
+const CURATED: Role[] = [
   {
     id: 'nr-4417',
     title: 'Senior Robotics Engineer',
@@ -99,3 +166,6 @@ export const ROLES: Role[] = [
     blurb: 'Own the autonomy roadmap and decide what ships next to the fleet.',
   },
 ];
+
+/** The hand-written roles first, so the demo always opens on the same listing. */
+export const ROLES: Role[] = [...CURATED, ...generated()];

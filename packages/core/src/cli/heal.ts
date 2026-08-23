@@ -14,13 +14,14 @@
 import { randomUUID } from 'node:crypto';
 
 import '../env.js';
-import { boardCollector } from '../collectors/board.js';
+import { boardCollector, normaliseBoardRow } from '../collectors/board.js';
 import type { BoardPlatform } from '../collectors/board.js';
+import { decideHeal, healScraper } from '../brightdata/cli.js';
 import { assessDrift, healField } from '../healing/orchestrator.js';
-import { sampleRun, updateBaseline } from '../healing/baseline.js';
+import { detectRowCollapse, sampleRun, updateBaseline } from '../healing/baseline.js';
 import type { Baseline } from '../healing/baseline.js';
 import { collectionRuns, db, fieldBaselines, fieldSamples, healEvents } from '../db/index.js';
-import { and, eq } from 'drizzle-orm';
+import { and, eq, sql } from 'drizzle-orm';
 import type { ExtractedField, RawPosting } from '../schema/posting.js';
 
 function has(flag: string): boolean {
@@ -160,6 +161,31 @@ async function main(): Promise<void> {
     return;
   }
 
+  /*
+   * Row count is judged before the fields.
+   *
+   * A run that matches nothing produces no evidence about any individual field,
+   * so every one of them reports insufficient data and the loop concludes
+   * everything is fine — which is exactly what happened the first time the chaos
+   * target was redesigned under a live collector.
+   */
+  const previous = await database.all<{ rows_returned: number }>(sql`
+    select rows_returned from collection_runs
+    where collector_id = ${collectorId} and error is null and rows_returned > 0
+    order by started_at desc limit 10
+  `);
+
+  const expectedRows =
+    previous.length === 0
+      ? 0
+      : Math.round(previous.reduce((sum, r) => sum + r.rows_returned, 0) / previous.length);
+
+  const rowVerdict = detectRowCollapse(run.postings.length, expectedRows);
+
+  if (rowVerdict.kind === 'broken' || rowVerdict.kind === 'degraded') {
+    console.log(`\nrow count ${rowVerdict.kind}: ${rowVerdict.reason}`);
+  }
+
   const drifted = assessDrift(run.postings, baselines);
 
   for (const sample of samples) {
@@ -176,11 +202,77 @@ async function main(): Promise<void> {
     });
   }
 
-  if (drifted.length === 0) {
+  const rowsBroken = rowVerdict.kind === 'broken' || rowVerdict.kind === 'degraded';
+
+  if (drifted.length === 0 && !rowsBroken) {
     // Only a healthy run folds into the baseline. Letting a broken run in would
     // drag the anchor down until the breakage looked normal and healing stopped.
     await saveBaselines(collectorId, run.postings, baselines);
     console.log('\nNo drift. Extraction is healthy and the baseline was updated.');
+    return;
+  }
+
+  /*
+   * When the collector matched nothing, the repair is not about one field — the
+   * row selector itself stopped matching, and asking for a specific field back
+   * would describe the wrong problem.
+   */
+  if (rowsBroken && drifted.length === 0) {
+    console.log('\nNo individual field drifted, because no rows came back to measure.');
+
+    if (has('dry-run')) {
+      console.log('--dry-run: no heal requested.');
+      return;
+    }
+
+    const detectedAt = new Date();
+    const prompt =
+      `The scraper ${rowVerdict.reason}. The page still lists jobs, but the collector ` +
+      `no longer matches them — the markup around each posting appears to have changed. ` +
+      `Re-locate the repeating job listings on the page and extract them again.`.slice(0, 1000);
+
+    console.log(`\n─── healing row extraction ───`);
+
+    const studioId = process.env[`BRIGHTDATA_COLLECTOR_${platform.toUpperCase()}`] ?? '';
+    const proposal = await healScraper(studioId, prompt, { url: target.url });
+
+    /*
+     * The gate returns the rows the proposed fix would produce, which is what
+     * makes judging it before approval possible. Re-running the collector here
+     * instead would return the *old* scraper's output — the fix is not live
+     * until approved — so every heal, good or bad, would be rejected.
+     */
+    const recovered = proposal.preview
+      .map((row) => normaliseBoardRow(row, target.url))
+      .filter((row): row is NonNullable<typeof row> => row !== null);
+
+    const usable = recovered.length;
+    const ok = usable > 0;
+
+    await decideHeal(studioId, ok ? 'approve' : 'reject');
+
+    console.log(`  rows before        ${run.postings.length}`);
+    console.log(`  proposed by heal   ${proposal.preview.length}`);
+    console.log(`  usable after parse ${usable}`);
+    if (recovered[0]) {
+      console.log(`  sample             ${recovered[0].title ?? '(untitled)'} — ${recovered[0].location ?? 'no location'}`);
+    }
+    console.log(`  ${ok ? 'APPROVED' : 'REJECTED'} — graded from the gate's preview, before applying`);
+
+    await database.insert(healEvents).values({
+      id: randomUUID(),
+      collectorId,
+      field: 'rows',
+      beforeSelector: null,
+      afterSelector: null,
+      rowsAffected: expectedRows,
+      rowsRecovered: usable,
+      accuracy: expectedRows === 0 ? null : Math.min(1, usable / expectedRows),
+      succeededAt: ok ? new Date() : null,
+      failedAt: ok ? null : new Date(),
+    });
+
+    console.log(`  recorded heal event (detected ${detectedAt.toISOString()})`);
     return;
   }
 

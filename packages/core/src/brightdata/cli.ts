@@ -225,7 +225,38 @@ export async function runScraper(
 export interface HealProposal {
   /** True when the heal is parked at the approval gate awaiting a decision. */
   awaitingApproval: boolean;
+  /**
+   * Rows the proposed fix would produce, returned by the gate without applying
+   * it.
+   *
+   * This is what makes grading before approval possible at all. Re-running the
+   * collector after requesting a heal returns the *old* scraper's output, because
+   * the fix is not live until approved — so a loop that grades a re-run rejects
+   * every heal, including the good ones.
+   */
+  preview: unknown[];
   raw: unknown;
+}
+
+/** Pull the gate's preview rows out of the response. */
+function findPreview(payload: unknown): unknown[] {
+  if (typeof payload !== 'object' || payload === null) return [];
+
+  const record = payload as Record<string, unknown>;
+  for (const key of ['preview_result', 'previewResult', 'preview', 'sample']) {
+    const value = record[key];
+    if (Array.isArray(value)) return value;
+  }
+
+  for (const nested of ['data', 'result']) {
+    const child = record[nested];
+    if (typeof child === 'object' && child !== null) {
+      const found = findPreview(child);
+      if (found.length > 0) return found;
+    }
+  }
+
+  return [];
 }
 
 /**
@@ -254,6 +285,7 @@ export async function healScraper(
 
   return {
     awaitingApproval: text.includes('approval') || text.includes('awaiting'),
+    preview: findPreview(raw),
     raw,
   };
 }

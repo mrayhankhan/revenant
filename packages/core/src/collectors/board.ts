@@ -119,7 +119,13 @@ function normaliseEmployment(value: string | null): RawPosting['employmentType']
 
 function toDate(value: string | null): Date | null {
   if (!value) return null;
-  const parsed = new Date(value);
+
+  // Boards label the date in place — "Posted 2026-08-04", "Listed on 3 May" —
+  // and the label comes back with the value, so it is stripped before parsing
+  // rather than treated as an unparseable date.
+  const cleaned = value.replace(/^\s*(posted|listed|published|added)\s*(on)?\s*:?\s*/i, '').trim();
+
+  const parsed = new Date(cleaned);
   return Number.isNaN(parsed.getTime()) ? null : parsed;
 }
 
@@ -136,7 +142,16 @@ export function normaliseBoardRow(raw: unknown, fallbackUrl: string): RawPosting
   if (typeof raw !== 'object' || raw === null) return null;
   const row = raw as Record<string, unknown>;
 
-  const applyUrl = pick(row, 'apply_url', 'applyUrl', 'apply_link', 'url', 'link', 'job_url');
+  const applyUrl = pick(
+    row,
+    'apply_url',
+    'applyUrl',
+    'apply_link',
+    'product_page_url',
+    'url',
+    'link',
+    'job_url',
+  );
   const sourceUrl = applyUrl ?? fallbackUrl;
   const location = pick(row, 'location', 'job_location', 'city', 'office');
 
@@ -191,7 +206,9 @@ export function normaliseBoardRow(raw: unknown, fallbackUrl: string): RawPosting
     employmentType: normaliseEmployment(
       pick(row, 'employment_type', 'employmentType', 'job_type', 'commitment'),
     ),
-    postedAt: toDate(pick(row, 'posted_at', 'postedAt', 'date_posted', 'published_at')),
+    postedAt: toDate(
+      pick(row, 'posted_at', 'postedAt', 'posted_date', 'date_posted', 'published_at'),
+    ),
     descriptionHtml: description,
     applyUrl,
   };

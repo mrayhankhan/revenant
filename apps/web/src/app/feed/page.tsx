@@ -208,7 +208,18 @@ export default function FeedPage(): React.ReactElement {
 
     if (domain !== null) rows = rows.filter((row) => classifyDomain(row.title) === domain);
 
-    return rows;
+    /*
+     * Postings that state a salary float to the top, keeping their existing
+     * order within each group — so a personalised feed still ranks by fit among
+     * the paid-transparent roles, and among the rest.
+     *
+     * `toSorted` rather than `sort`: `rows` may still be the array held in state
+     * when no filter is active, and sorting in place would mutate it.
+     */
+    return rows.toSorted((a, b) => {
+      const paid = Number(b.salaryMin !== null) - Number(a.salaryMin !== null);
+      return paid;
+    });
   }, [data, personalised, filter, query, company, workMode, level, domain]);
 
   const total = useCountUp(counts.all);

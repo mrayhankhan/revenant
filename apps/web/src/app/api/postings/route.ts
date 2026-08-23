@@ -81,8 +81,20 @@ export async function GET(request: Request): Promise<NextResponse> {
 
   const filtered = conditions.length > 0 ? base.where(and(...conditions)) : base;
 
+  /*
+   * Postings that state a salary come first.
+   *
+   * Ordering has to happen in the query rather than on the returned page: the
+   * page is capped at a few hundred rows, so anything sorted below the cap is
+   * not merely lower down, it never arrives. Sorting by date alone meant the
+   * fifth of postings that publish a range were scattered through eleven
+   * thousand rows and mostly absent from the first page.
+   */
   const rows = await filtered
-    .orderBy(sort === 'decay' ? livenessObservations.score : desc(postings.postedAt))
+    .orderBy(
+      sql`case when ${postings.salaryMin} is null then 1 else 0 end`,
+      sort === 'decay' ? livenessObservations.score : desc(postings.postedAt),
+    )
     .limit(limit);
 
   // Counts over every posting, independent of the page above.

@@ -102,11 +102,46 @@ accuracy vs greenhouse's own feed
 
 Full output: [`docs/sample-output.json`](docs/sample-output.json)
 
-### 3. Healing
+### 3. Healing — run live, against a real redesign
 
 ```bash
-npm run heal -w @revenant/core -- chaos <url>
+npm run heal -w @revenant/core -- chaos https://revenant-chaos.vercel.app
 ```
+
+`apps/chaos-target` is a job board I control, deployed so Bright Data can reach
+it. It serves 60 roles and can be redesigned on command at the **same URL** —
+every class renamed, the salary nested and split across three elements. A
+redesign is the same page coming back different, so the URL must not change.
+
+What actually happened:
+
+```
+baseline (layout A)   60 rows · location 100% · salary 83%
+
+  ── board redesigned, same URL ──
+
+collector run         0 rows
+detector              "returned nothing where previous runs averaged 33 rows"
+heal requested        Scraper Studio returns a preview at the approval gate
+graded + approved     preview parsed into usable rows
+collector re-run      60 rows, 0 rejected
+after                 location 100% · salary 83% · title 100%
+```
+
+`title` was 0% before the heal and 100% after — the repair recovered a field the
+original collector never managed to extract.
+
+**Two things this exposed, both fixed:**
+
+Drift is measured per field *across rows*, so a run returning **no** rows gives
+no evidence about any field and every one reports "insufficient data". The worst
+possible failure was the one case the detector could not see — it reported
+"extraction is healthy" while the collector matched nothing. Row count is now
+judged separately, against what previous runs returned.
+
+And grading must read the **gate's preview**, not a re-run. A proposed fix is not
+live until approved, so re-running returns the old scraper's output and every
+heal gets rejected, including the good ones.
 
 Wraps `bdata scraper heal` and `bdata scraper approve`. The important part is
 that **we do not pass `--auto-approve`.**

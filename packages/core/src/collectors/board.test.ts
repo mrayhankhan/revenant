@@ -105,6 +105,43 @@ describe('normaliseBoardRow', () => {
     expect(posting?.applyUrl).toBe('https://job-boards.greenhouse.io/acme/jobs/77');
   });
 
+  /*
+   * Field names come from the description Studio was given, so they vary between
+   * collectors. A live run against the chaos target returned product_page_url
+   * and posted_date, and every row was rejected for having no identity until
+   * both were mapped.
+   */
+  it('accepts the field names a generated collector actually returns', () => {
+    const posting = normaliseBoardRow(
+      {
+        location: 'Berlin, Germany',
+        workplace_type: 'Hybrid',
+        salary_range: 'EUR 95,000 – EUR 125,000 per year',
+        employment_type: 'Full-time',
+        posted_date: 'Posted 2026-08-04',
+        job_description: 'Own motion planning for our warehouse fleet.',
+        product_page_url: 'https://example.com/jobs/nr-4417',
+      },
+      URL,
+    );
+
+    expect(posting).not.toBeNull();
+    expect(posting?.applyUrl).toBe('https://example.com/jobs/nr-4417');
+    expect(posting?.remotePolicy).toBe('hybrid');
+    expect(posting?.salaryMin).toBe(95_000);
+    expect(posting?.postedAt?.toISOString().slice(0, 10)).toBe('2026-08-04');
+  });
+
+  it('strips the label boards put in front of a date', () => {
+    for (const value of ['Posted 2026-08-04', 'Listed on 2026-08-04', 'Published: 2026-08-04']) {
+      const posting = normaliseBoardRow(
+        { title: 'Engineer', url: 'https://x.co/j/1', posted_at: value },
+        URL,
+      );
+      expect(posting?.postedAt?.toISOString().slice(0, 10)).toBe('2026-08-04');
+    }
+  });
+
   it('recovers salary from description prose when the salary field is boilerplate', () => {
     const posting = normaliseBoardRow(
       {

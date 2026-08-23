@@ -164,6 +164,63 @@ export function detectDrift(
   return { kind: 'healthy', field, rate, baseline: baseline.rate };
 }
 
+/**
+ * Whether a run returned far fewer rows than the collector normally does.
+ *
+ * Field drift is measured across rows, so a run that returns *no* rows produces
+ * no evidence about any field and every one of them reports insufficient data.
+ * That leaves the worst failure — the collector matching nothing at all — as the
+ * single case the detector cannot see. A live redesign of the chaos target broke
+ * extraction completely and the loop reported "no drift, extraction is healthy".
+ *
+ * So the row count is judged separately, against how many rows previous runs
+ * returned.
+ */
+export interface RowCountVerdict {
+  kind: 'healthy' | 'degraded' | 'broken' | 'insufficient_data';
+  returned: number;
+  expected: number;
+  reason: string;
+}
+
+export function detectRowCollapse(
+  returned: number,
+  expected: number,
+  options: DriftOptions = DEFAULT_DRIFT_OPTIONS,
+): RowCountVerdict {
+  // Without a useful history there is nothing to call a collapse against — a
+  // collector that has only ever returned three rows may simply scrape a small
+  // board.
+  if (expected < options.minRunSize) {
+    return {
+      kind: 'insufficient_data',
+      returned,
+      expected,
+      reason: `previous runs averaged ${expected} rows, need ${options.minRunSize} to judge`,
+    };
+  }
+
+  if (returned === 0) {
+    return {
+      kind: 'broken',
+      returned,
+      expected,
+      reason: `returned nothing where previous runs averaged ${expected} rows`,
+    };
+  }
+
+  if (returned < expected * options.degradedRatio) {
+    return {
+      kind: 'degraded',
+      returned,
+      expected,
+      reason: `returned ${returned} rows where previous runs averaged ${expected}`,
+    };
+  }
+
+  return { kind: 'healthy', returned, expected, reason: 'row count is normal' };
+}
+
 /** Fields whose extraction warrants a self-heal, worst first. */
 export function fieldsNeedingHeal(verdicts: readonly DriftVerdict[]): ExtractedField[] {
   return verdicts

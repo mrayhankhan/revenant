@@ -4,6 +4,7 @@
     { "source": "/chaos/flip", "destination": "/api/flip" },
     { "source": "/chaos/state", "destination": "/api/state" },
     { "source": "/chaos/truth", "destination": "/api/truth" },
+    { "source": "/jobs/:id", "destination": "/api/job?id=:id" },
     { "source": "/", "destination": "/api/index" }
   ],
   "headers": [
