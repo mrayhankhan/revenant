@@ -212,10 +212,19 @@ body::before {
 /* A proven-dead listing should look subtracted from the feed, not decorated. */
 .card.is-ghost {
   opacity: 0.55;
-  filter: saturate(0.6);
 }
 .card.is-ghost:hover {
   opacity: 1;
+}
+
+/* `filter` creates a containing block, which pulls the element out of its
+   parent's 3D rendering context — a desaturated flip face stops rotating in
+   space and slides flat instead. Ghost cards in the feed carry the opacity
+   alone; everywhere else keeps the desaturation. */
+.card.is-ghost:not(.flip-face) {
+  filter: saturate(0.6);
+}
+.card.is-ghost:not(.flip-face):hover {
   filter: none;
 }
 
@@ -237,12 +246,24 @@ body::before {
   height: 100%;
   width: 100%;
   transform-style: preserve-3d;
+  transform: rotateY(0deg);
   transition: transform 620ms var(--ease-in-out);
 }
 
+/*
+ * Promoted only while the pointer is on the card, never standing.
+ *
+ * The feed renders three hundred of these at once, and a standing
+ * `will-change` on all of them asks the compositor for three hundred layers it
+ * does not need — past its budget Chrome starts declining promotion outright,
+ * so the hint meant to smooth the flip is what makes every card stutter. The
+ * easing starts slow enough that promoting on the first frame of the turn costs
+ * nothing visible.
+ */
 .flip:hover .flip-inner,
 .flip:focus-visible .flip-inner {
   transform: rotateY(180deg);
+  will-change: transform;
 }
 
 .flip-face {
@@ -254,15 +275,54 @@ body::before {
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
   padding: 1rem 1.1rem;
+  /*
+   * Two things a face inherits from .card have to go.
+   *
+   * `overflow: hidden` makes the browser clip to the rounded corners on every
+   * frame of the rotation, which shows up as a shimmering edge for the length of
+   * the turn. The corners are handled by giving the verdict bar its own radius
+   * instead.
+   *
+   * And .card transitions `transform` — see below for why that one is worse.
+   */
+  overflow: visible;
+  transition:
+    border-color 180ms var(--ease-out),
+    background 180ms var(--ease-out);
+  transform: translateZ(0);
 }
 
 .flip-back {
-  transform: rotateY(180deg);
+  transform: rotateY(180deg) translateZ(0);
 }
 
-/* The lift on .card would fight the rotation, so the flip owns the motion. */
-.flip .card:hover {
-  transform: none;
+/* Rounds its own corners now that the face no longer clips it. */
+.flip-face::before {
+  border-radius: 12px 0 0 12px;
+}
+
+/*
+ * A face must never be handed a transform of its own.
+ *
+ * `.card:hover` lifts by 2px, and on the back face that replaces
+ * `rotateY(180deg)` outright: the back un-rotates mid-turn and disappears behind
+ * its own hidden backface. It fires constantly, too — hit-testing crosses from
+ * one face to the other as the card passes 90°, so both faces run their hover
+ * transitions in the middle of the rotation.
+ *
+ * Hover is therefore owned by .flip, which does not move, and applied to both
+ * faces at once.
+ */
+.flip-face:hover {
+  transform: translateZ(0);
+  box-shadow: none;
+}
+.flip-back:hover {
+  transform: rotateY(180deg) translateZ(0);
+}
+.flip:hover .flip-face {
+  border-color: var(--border-strong);
+  background: var(--surface-raised);
 }
 
 /*
@@ -273,12 +333,14 @@ body::before {
 @media (hover: none) {
   .flip-inner {
     transform: rotateY(180deg);
+    will-change: auto;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .flip-inner {
     transition: none;
+    will-change: auto;
   }
 }
 
