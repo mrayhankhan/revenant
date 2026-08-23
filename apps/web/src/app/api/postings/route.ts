@@ -24,6 +24,7 @@ export async function GET(request: Request): Promise<NextResponse> {
   const verdict = url.searchParams.get('verdict');
   const search = url.searchParams.get('q')?.trim();
   const sort = url.searchParams.get('sort') ?? 'recent';
+  const reposted = url.searchParams.get('reposted') === '1';
 
   const database = db();
 
@@ -40,6 +41,14 @@ export async function GET(request: Request): Promise<NextResponse> {
 
   const conditions = [];
   if (verdict) conditions.push(eq(livenessObservations.verdict, verdict));
+  /*
+   * Re-listed roles have to be filtered in the query, not on the returned page.
+   * They are a hundred and ninety rows in eleven thousand and they do not sort
+   * to the top, so a page capped at three hundred contains a handful by
+   * accident — filtering client-side would find those few and report them as
+   * the whole set.
+   */
+  if (reposted) conditions.push(sql`${livenessObservations.repostCount} > 0`);
   if (search) {
     const needle = `%${search.toLowerCase()}%`;
     conditions.push(
@@ -115,6 +124,16 @@ export async function GET(request: Request): Promise<NextResponse> {
     counts['all'] = (counts['all'] ?? 0) + row.n;
   }
 
+  const repostTally = await database.get<{ n: number }>(sql`
+    select count(*) as n
+    from postings p
+    join liveness_observations o on o.posting_id = p.id
+    where o.observed_at = (
+      select max(observed_at) from liveness_observations where posting_id = p.id
+    )
+    and o.repost_count > 0
+  `);
+
   // Named for what it holds, not for the table — `companies` is the imported
   // schema object in this file.
   const companyCount = await database.get<{ n: number }>(
@@ -123,6 +142,7 @@ export async function GET(request: Request): Promise<NextResponse> {
 
   return NextResponse.json({
     counts,
+    reposted: repostTally?.n ?? 0,
     companies: companyCount?.n ?? 0,
     total: rows.length,
     postings: rows.map((row) => ({

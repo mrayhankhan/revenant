@@ -29,6 +29,8 @@ const LEVEL_OPTIONS: { value: ExperienceLevel; label: string }[] = [
 
 interface FeedResponse {
   counts: Record<Verdict | 'all', number>;
+  /** Roles in the whole corpus that have been listed again, not just on this page. */
+  reposted?: number;
   companies: number;
   postings: Posting[];
 }
@@ -100,6 +102,7 @@ export default function FeedPage(): React.ReactElement {
   const [level, setLevel] = useState<ExperienceLevel | null>(null);
   const [domain, setDomain] = useState<JobDomain | null>(null);
   const [personalised, setPersonalised] = useState(false);
+  const [reposted, setReposted] = useState(false);
 
   useEffect(() => {
     if (!ready) return;
@@ -127,6 +130,8 @@ export default function FeedPage(): React.ReactElement {
                 for (const row of payload.results) counts[row.liveness.verdict] += 1;
                 return {
                   counts,
+                  reposted: payload.results.filter((r) => (r.liveness.repostCount ?? 0) > 0)
+                    .length,
                   companies: new Set(payload.results.map((r) => r.company)).size,
                   postings: payload.results,
                 } satisfies FeedResponse;
@@ -135,6 +140,7 @@ export default function FeedPage(): React.ReactElement {
                 const params = new URLSearchParams({ limit: '300' });
                 if (filter !== 'all') params.set('verdict', filter);
                 if (query.trim()) params.set('q', query.trim());
+                if (reposted) params.set('reposted', '1');
                 return fetch(`/api/postings?${params.toString()}`).then(async (res) => {
                   if (!res.ok) throw new Error(`feed unavailable (${res.status})`);
                   setPersonalised(false);
@@ -156,7 +162,7 @@ export default function FeedPage(): React.ReactElement {
     );
 
     return () => clearTimeout(timer);
-  }, [ready, profile, filter, query]);
+  }, [ready, profile, filter, query, reposted]);
 
   const counts = data?.counts ?? EMPTY_COUNTS;
 
@@ -194,6 +200,10 @@ export default function FeedPage(): React.ReactElement {
           .toLowerCase()
           .includes(needle);
       });
+    }
+
+    if (personalised && reposted) {
+      rows = rows.filter((row) => (row.liveness.repostCount ?? 0) > 0);
     }
 
     if (company !== null) rows = rows.filter((row) => row.company === company);
@@ -278,6 +288,27 @@ export default function FeedPage(): React.ReactElement {
               {verdict} <span className="count">{counts[verdict].toLocaleString()}</span>
             </button>
           ))}
+
+          {/*
+            A separate axis from the verdict, so a toggle rather than another
+            chip in the same group: a re-listed role can be live, ageing or
+            stale, and folding it in with the verdicts would imply otherwise.
+          */}
+          <button
+            className="pill"
+            data-active={reposted}
+            aria-pressed={reposted}
+            onClick={() => setReposted((on) => !on)}
+            title="Roles listed again under a fresh date. The date shown is the latest listing, not when the role opened."
+          >
+            <span
+              aria-hidden
+              className="inline-block h-1.5 w-1.5 rounded-full"
+              style={{ background: 'var(--aging)' }}
+            />
+            re-posted{' '}
+            <span className="count">{(data?.reposted ?? 0).toLocaleString()}</span>
+          </button>
         </div>
 
         <input

@@ -69,6 +69,8 @@ export async function POST(request: Request): Promise<NextResponse> {
       score: livenessObservations.score,
       verdict: livenessObservations.verdict,
       provenGhost: livenessObservations.provenGhost,
+      repostCount: livenessObservations.repostCount,
+      reasons: livenessObservations.reasons,
     })
     .from(postings)
     .innerJoin(latest, eq(latest.postingId, postings.id))
@@ -111,7 +113,13 @@ export async function POST(request: Request): Promise<NextResponse> {
         salaryCurrency: row.salaryCurrency,
         postedAt: row.postedAt?.toISOString() ?? null,
         applyUrl: row.applyUrl,
-        liveness: { score: row.score, verdict: row.verdict },
+        liveness: {
+          score: row.score,
+          verdict: row.verdict,
+          provenGhost: row.provenGhost,
+          repostCount: row.repostCount,
+          reasons: safeReasons(row.reasons),
+        },
         match: {
           score: match.score,
           matched: match.matched,
@@ -153,4 +161,15 @@ export async function POST(request: Request): Promise<NextResponse> {
     scanned: rows.length,
     results,
   });
+}
+
+/** Reasons are stored as a JSON array; never let a malformed row break a match. */
+function safeReasons(raw: string | null): string[] {
+  if (!raw) return [];
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed.filter((r): r is string => typeof r === 'string') : [];
+  } catch {
+    return [];
+  }
 }
