@@ -172,47 +172,65 @@ body::before {
   filter: none;
 }
 
-/* ---- Card detail, revealed on hover -------------------------------------- */
+/* ---- Flip card ----------------------------------------------------------- */
 
 /*
- * Collapsed until the card is hovered or focused. Uses grid-template-rows rather
- * than max-height so the transition is exact regardless of content length — a
- * guessed max-height either clips long text or eases against empty space.
+ * The front shows only what identifies a role; the back holds everything used to
+ * judge it. Both faces share one fixed box, so a grid of these never reflows as
+ * cards turn.
  */
-.card-detail {
-  display: grid;
-  grid-template-rows: 0fr;
-  opacity: 0;
-  transition:
-    grid-template-rows 260ms var(--ease-out),
-    opacity 200ms var(--ease-out);
+.flip {
+  display: block;
+  height: 190px;
+  perspective: 1200px;
 }
 
-.card-detail > * {
-  overflow: hidden;
-  min-height: 0;
+.flip-inner {
+  position: relative;
+  height: 100%;
+  width: 100%;
+  transform-style: preserve-3d;
+  transition: transform 620ms var(--ease-in-out);
 }
 
-.card:hover .card-detail,
-.card:focus-visible .card-detail,
-.card:focus-within .card-detail {
-  grid-template-rows: 1fr;
-  opacity: 1;
+.flip:hover .flip-inner,
+.flip:focus-visible .flip-inner {
+  transform: rotateY(180deg);
+}
+
+.flip-face {
+  position: absolute;
+  inset: 0;
+  height: 100%;
+  width: 100%;
+  /* Chrome still needs the prefixed form to hide the reverse of a rotated face. */
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  padding: 1rem 1.1rem;
+}
+
+.flip-back {
+  transform: rotateY(180deg);
+}
+
+/* The lift on .card would fight the rotation, so the flip owns the motion. */
+.flip .card:hover {
+  transform: none;
 }
 
 /*
- * Anything without hover — touch — gets the detail permanently. A reveal that
- * requires a pointer would simply hide the content on a phone.
+ * Without hover there is no way to turn a card, so the back is what shows. The
+ * detail matters more than the reveal, and a phone would otherwise get a grid
+ * of names with no way past it.
  */
 @media (hover: none) {
-  .card-detail {
-    grid-template-rows: 1fr;
-    opacity: 1;
+  .flip-inner {
+    transform: rotateY(180deg);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .card-detail {
+  .flip-inner {
     transition: none;
   }
 }

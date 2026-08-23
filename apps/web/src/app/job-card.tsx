@@ -64,9 +64,8 @@ function relativeAge(iso: string | null): string {
 }
 
 /**
- * Placeholders that boards use to mean "not stated". Rendering them verbatim
- * puts a literal "N/A" on the card, which reads as a bug rather than as an
- * absent value.
+ * Placeholders boards use to mean "not stated". Printed verbatim they read as a
+ * bug rather than an absent value.
  */
 const PLACEHOLDER_LOCATION = /^(n\/?a|none|-|—|tbd|unspecified|various)$/i;
 
@@ -76,7 +75,7 @@ function displayLocation(location: string | null): string | null {
   return trimmed;
 }
 
-/** Deterministic hue per company, so the same logo colour follows it around. */
+/** Deterministic hue per company, so its mark is the same colour everywhere. */
 function companyHue(name: string): number {
   let hash = 0;
   for (let i = 0; i < name.length; i += 1) hash = (hash * 31 + name.charCodeAt(i)) % 360;
@@ -84,13 +83,14 @@ function companyHue(name: string): number {
 }
 
 /**
- * A job as a card rather than a row.
+ * A job as a flip card.
  *
- * A row forces every attribute onto one line, so salary, arrangement, skills and
- * the reason for the score compete for the same horizontal space and most of them
- * lose. A card gives each its own line and fits three across, which means more
- * information per screen and far less scrolling — the layout every job board
- * converges on for exactly this reason.
+ * The front carries only what identifies the role — company and title — so a
+ * grid of these scans as a list of jobs rather than a wall of statistics. The
+ * back holds everything used to judge it: match score, pay, location, matched
+ * skills and the reason behind the liveness verdict.
+ *
+ * Both faces occupy the same box, so the grid never reflows as cards turn.
  */
 export function JobCard({ job, index }: { job: JobCardData; index: number }): React.ReactElement {
   const { liveness, match } = job;
@@ -99,147 +99,133 @@ export function JobCard({ job, index }: { job: JobCardData; index: number }): Re
   const headlineColor = match ? matchColor(match.score) : VERDICT_COLOR[liveness.verdict];
   const reason = match?.reasons[0] ?? liveness.reasons[0];
   const company = job.company ?? 'Unknown';
+  const location = displayLocation(job.location);
   const hue = companyHue(company);
 
   return (
     <a
       href={`/listing/${job.id}`}
-      className={clsx('card reveal group flex h-full flex-col gap-3', `is-${liveness.verdict}`)}
+      className="flip reveal"
       style={{ '--i': Math.min(index, 11) } as React.CSSProperties}
+      aria-label={`${job.title ?? 'Role'} at ${company}`}
     >
-      {/* ---- Header: identity and the headline number ---------------------- */}
-      <div className="flex items-start gap-3">
-        <span
-          aria-hidden
-          className="mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-lg text-[13px] font-semibold transition-transform duration-200 group-hover:scale-105"
-          style={{
-            background: `hsl(${hue} 45% 16%)`,
-            color: `hsl(${hue} 70% 72%)`,
-            border: `1px solid hsl(${hue} 40% 26%)`,
-          }}
-        >
-          {company.slice(0, 2).toUpperCase()}
-        </span>
+      <div className="flip-inner">
+        {/* ---- Front: identity only ------------------------------------- */}
+        <div className={clsx('flip-face card flex flex-col', `is-${liveness.verdict}`)}>
+          <span
+            aria-hidden
+            className="grid h-10 w-10 place-items-center rounded-lg text-[14px] font-semibold"
+            style={{
+              background: `hsl(${hue} 45% 16%)`,
+              color: `hsl(${hue} 70% 72%)`,
+              border: `1px solid hsl(${hue} 40% 26%)`,
+            }}
+          >
+            {company.slice(0, 2).toUpperCase()}
+          </span>
 
-        <div className="min-w-0 flex-1">
-          <h3 className="line-clamp-2 text-[14px] font-medium leading-snug">
+          <h3 className="mt-3 line-clamp-3 text-[15px] font-medium leading-snug">
             {job.title ?? 'Untitled role'}
           </h3>
-          <p className="mt-0.5 truncate text-[12.5px] text-[var(--text-muted)]">{company}</p>
+          <p className="mt-1 truncate text-[13px] text-[var(--text-muted)]">{company}</p>
+
+          {/* A single dot is the only status on the front: enough to spot a
+              dead listing while scanning, not enough to become a statistic. */}
+          <div className="mt-auto flex items-center justify-between pt-3">
+            <span
+              className="inline-block h-1.5 w-1.5 rounded-full"
+              style={{ background: VERDICT_COLOR[liveness.verdict] }}
+              title={VERDICT_LABEL[liveness.verdict]}
+            />
+            <span className="text-[11px] text-[var(--text-faint)]">Hover for detail</span>
+          </div>
         </div>
 
-        <div className="shrink-0 text-right">
-          <div className="tabular text-[19px] font-semibold leading-none" style={{ color: headlineColor }}>
-            {headline}
+        {/* ---- Back: everything used to judge the role -------------------- */}
+        <div className={clsx('flip-face flip-back card flex flex-col', `is-${liveness.verdict}`)}>
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <h3 className="truncate text-[13px] font-medium">{job.title ?? 'Untitled role'}</h3>
+              <p className="truncate text-[11.5px] text-[var(--text-faint)]">{company}</p>
+            </div>
+            <div className="shrink-0 text-right">
+              <div className="tabular text-[18px] font-semibold leading-none" style={{ color: headlineColor }}>
+                {headline}
+              </div>
+              <div className="text-[10px] uppercase tracking-wide text-[var(--text-faint)]">
+                {match ? 'match' : 'live'}
+              </div>
+            </div>
           </div>
-          <div className="mt-1 text-[10px] uppercase tracking-wide text-[var(--text-faint)]">
-            {match ? 'match' : 'live'}
+
+          <div className="meter mt-2">
+            <span
+              style={
+                { '--to': `${headline}%`, '--i': 0, background: headlineColor } as React.CSSProperties
+              }
+            />
           </div>
-        </div>
-      </div>
 
-      <div className="meter">
-        <span
-          style={
-            {
-              '--to': `${headline}%`,
-              '--i': Math.min(index, 11),
-              background: headlineColor,
-            } as React.CSSProperties
-          }
-        />
-      </div>
+          <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11.5px] text-[var(--text-muted)]">
+            {location && <span className="max-w-[140px] truncate">{location}</span>}
+            {job.remotePolicy && job.remotePolicy !== 'unstated' && (
+              <span className="capitalize text-[var(--text-faint)]">{job.remotePolicy}</span>
+            )}
+            {salary ? (
+              <span className="tabular font-medium text-[var(--live)]">{salary}</span>
+            ) : (
+              <span className="text-[var(--text-faint)]">Pay not listed</span>
+            )}
+            <span className="tabular ml-auto text-[var(--text-faint)]">
+              {relativeAge(job.postedAt)}
+            </span>
+          </div>
 
-      {/* ---- Facts, each on its own line so none of them get squeezed out --- */}
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] text-[var(--text-muted)]">
-        {displayLocation(job.location) && (
-          <span className="inline-flex items-center gap-1 truncate">
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" aria-hidden>
-              <path
-                d="M12 21s7-6 7-11a7 7 0 1 0-14 0c0 5 7 11 7 11Z"
-                stroke="currentColor"
-                strokeWidth="2"
-              />
-              <circle cx="12" cy="10" r="2.5" stroke="currentColor" strokeWidth="2" />
-            </svg>
-            <span className="max-w-[150px] truncate">{displayLocation(job.location)}</span>
-          </span>
-        )}
+          {match && match.matched.length > 0 && (
+            <div className="mt-2 flex flex-wrap gap-1">
+              {match.matched.slice(0, 4).map((skill) => (
+                <span
+                  key={skill}
+                  className="rounded-md border border-[var(--border)] bg-[var(--surface-raised)] px-1.5 py-0.5 text-[10.5px] text-[var(--text-muted)]"
+                >
+                  {skill}
+                </span>
+              ))}
+              {match.matched.length > 4 && (
+                <span className="px-1 text-[10.5px] text-[var(--text-faint)]">
+                  +{match.matched.length - 4}
+                </span>
+              )}
+            </div>
+          )}
 
-        {job.remotePolicy && job.remotePolicy !== 'unstated' && (
-          <span className="capitalize text-[var(--text-faint)]">{job.remotePolicy}</span>
-        )}
+          {reason && (
+            <p
+              className={clsx(
+                'mt-2 line-clamp-2 text-[11.5px] leading-relaxed',
+                liveness.provenGhost ? 'verdict-ghost font-medium' : 'text-[var(--text-muted)]',
+              )}
+            >
+              {liveness.provenGhost && '✕ '}
+              {reason}
+            </p>
+          )}
 
-        {salary ? (
-          <span className="tabular font-medium text-[var(--live)]">{salary}</span>
-        ) : (
-          <span className="text-[var(--text-faint)]">Pay not listed</span>
-        )}
-
-        <span className="tabular ml-auto text-[var(--text-faint)]">{relativeAge(job.postedAt)}</span>
-      </div>
-
-      {/*
-        Detail that expands on hover.
-
-        Hiding the essentials until hover would mean less information per screen,
-        which is the opposite of why cards were chosen. So identity, pay and
-        status stay visible always, and this reveals the supporting detail —
-        matched skills and the reason behind the score — for the one card being
-        considered. It is expanded by default on touch, where there is no hover.
-      */}
-      <div className="card-detail">
-        {match && match.matched.length > 0 && (
-          <div className="mb-2 flex flex-wrap gap-1">
-            {match.matched.slice(0, 5).map((skill) => (
+          <div className="mt-auto flex items-center justify-between border-t border-[var(--border)] pt-2 text-[11px]">
+            <span
+              className="inline-flex items-center gap-1.5"
+              style={{ color: VERDICT_COLOR[liveness.verdict] }}
+            >
               <span
-                key={skill}
-                className="rounded-md border border-[var(--border)] bg-[var(--surface-raised)] px-1.5 py-0.5 text-[11px] text-[var(--text-muted)]"
-              >
-                {skill}
-              </span>
-            ))}
-            {match.matched.length > 5 && (
-              <span className="px-1 py-0.5 text-[11px] text-[var(--text-faint)]">
-                +{match.matched.length - 5}
-              </span>
-            )}
+                className="inline-block h-1.5 w-1.5 rounded-full"
+                style={{ background: VERDICT_COLOR[liveness.verdict] }}
+              />
+              {VERDICT_LABEL[liveness.verdict]}
+              {match && <span className="text-[var(--text-faint)]"> · {liveness.score}</span>}
+            </span>
+            <span className="text-[var(--accent)]">View →</span>
           </div>
-        )}
-
-        {match && match.missing.length > 0 && (
-          <p className="mb-2 text-[11.5px] leading-relaxed text-[var(--text-faint)]">
-            Missing: {match.missing.slice(0, 3).join(', ')}
-          </p>
-        )}
-
-        {reason && (
-          <p
-            className={clsx(
-              'line-clamp-3 text-[12px] leading-relaxed',
-              liveness.provenGhost ? 'verdict-ghost font-medium' : 'text-[var(--text-muted)]',
-            )}
-          >
-            {liveness.provenGhost && '✕ '}
-            {reason}
-          </p>
-        )}
-      </div>
-
-      {/* ---- Status, always in the same corner so it can be scanned -------- */}
-      <div className="mt-auto flex items-center justify-between border-t border-[var(--border)] pt-2.5 text-[11px]">
-        <span className="inline-flex items-center gap-1.5" style={{ color: VERDICT_COLOR[liveness.verdict] }}>
-          <span
-            className="inline-block h-1.5 w-1.5 rounded-full"
-            style={{ background: VERDICT_COLOR[liveness.verdict] }}
-          />
-          {VERDICT_LABEL[liveness.verdict]}
-          {match && <span className="text-[var(--text-faint)]"> · {liveness.score}</span>}
-        </span>
-
-        <span className="text-[var(--text-faint)] transition-colors duration-200 group-hover:text-[var(--accent)]">
-          View →
-        </span>
+        </div>
       </div>
     </a>
   );

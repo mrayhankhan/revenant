@@ -77,6 +77,7 @@ export default function FeedPage(): React.ReactElement {
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<Verdict | 'all'>('all');
   const [query, setQuery] = useState('');
+  const [company, setCompany] = useState<string | null>(null);
   const [personalised, setPersonalised] = useState(false);
 
   useEffect(() => {
@@ -138,20 +139,34 @@ export default function FeedPage(): React.ReactElement {
 
   const counts = data?.counts ?? EMPTY_COUNTS;
 
-  // Personalised results are ranked server-side, so filtering happens here.
-  const visible = useMemo(() => {
-    const rows = data?.postings ?? [];
-    if (!personalised) return rows;
+  /** Companies present in the current result set, most roles first. */
+  const companies = useMemo(() => {
+    const tally = new Map<string, number>();
+    for (const row of data?.postings ?? []) {
+      if (!row.company) continue;
+      tally.set(row.company, (tally.get(row.company) ?? 0) + 1);
+    }
+    return [...tally.entries()].sort((a, b) => b[1] - a[1]).slice(0, 16);
+  }, [data]);
 
-    const needle = query.trim().toLowerCase();
-    return rows.filter((row) => {
-      if (filter !== 'all' && row.liveness.verdict !== filter) return false;
-      if (!needle) return true;
-      return `${row.title ?? ''} ${row.company ?? ''} ${row.location ?? ''}`
-        .toLowerCase()
-        .includes(needle);
-    });
-  }, [data, personalised, filter, query]);
+  const visible = useMemo(() => {
+    let rows = data?.postings ?? [];
+
+    // Personalised results are ranked server-side and returned whole, so verdict
+    // and search filtering happen here rather than in the query.
+    if (personalised) {
+      const needle = query.trim().toLowerCase();
+      rows = rows.filter((row) => {
+        if (filter !== 'all' && row.liveness.verdict !== filter) return false;
+        if (!needle) return true;
+        return `${row.title ?? ''} ${row.company ?? ''} ${row.location ?? ''}`
+          .toLowerCase()
+          .includes(needle);
+      });
+    }
+
+    return company === null ? rows : rows.filter((row) => row.company === company);
+  }, [data, personalised, filter, query, company]);
 
   const total = useCountUp(counts.all);
   const decaying = counts.ghost + counts.stale;
@@ -218,6 +233,31 @@ export default function FeedPage(): React.ReactElement {
           onChange={(event) => setQuery(event.target.value)}
         />
       </div>
+
+      {/* Companies, with counts. Filtering by employer is the first thing
+          anyone reaches for on a job board and it costs one click here. */}
+      {companies.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          <button
+            className="chip"
+            data-selected={company === null}
+            onClick={() => setCompany(null)}
+          >
+            All companies
+          </button>
+          {companies.map(([name, count]) => (
+            <button
+              key={name}
+              className="chip"
+              data-selected={company === name}
+              onClick={() => setCompany(company === name ? null : name)}
+            >
+              {name}
+              <span className="tabular ml-1.5 text-[var(--text-faint)]">{count}</span>
+            </button>
+          ))}
+        </div>
+      )}
 
       {error && (
         <div className="panel p-5 text-sm verdict-ghost">
