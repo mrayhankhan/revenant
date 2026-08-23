@@ -14,30 +14,25 @@ All four are in `docs/screenshots/` and live in the README.
 
 ---
 
-## 2a. The 2.5-minute version — use this one
+## 2. The video — 2.5 minutes
 
-### Before you record
+### Before you start
 
-**Screen layout.** Split the screen down the middle for the last section:
-browser on the left, terminal on the right. The viewer has to see the page change
-*and* the scraper react to it, at the same time, or the whole thing is just
-scrolling text.
+**Facecam in a corner, one window at a time.** Not split-screen — the terminal
+output has to be readable, and sharing the frame with a browser and a face
+leaves none of it legible. Record full-screen browser and full-screen terminal
+and alt-tab between them. Switching windows on camera reads as deliberate; it is
+the shared frame that reads as clutter.
 
-**Make the terminal readable.** Font size 18 or larger. Nobody can read a 12pt
-terminal on a phone, and this is the part that has to be believed.
+**Terminal font size 18 or larger.** This is the part that has to be believed,
+and nobody can read 12pt on a phone.
 
-**Two commands ready to paste.** These flip the board between designs in about
-two seconds — same URL, completely different HTML. No waiting, no cut.
+**Start with the chaos board on its original design.** The command to put it
+there is in the 2:00 beat below, along with the one that breaks it.
 
-```bash
-# Original design
-npx vercel alias set revenant-chaos-jld8rwkq2-rays-projects-6f560386.vercel.app revenant-chaos.vercel.app
-
-# Redesigned
-npx vercel alias set revenant-chaos-7y9in19er-rays-projects-6f560386.vercel.app revenant-chaos.vercel.app
-```
-
-Start on the original design. Run the flip when the script says.
+**On Windows, use `npm.cmd` rather than `npm`** — PowerShell's execution policy
+blocks the `.ps1` shim and the run dies before it starts. Worth testing each
+command once before you record.
 
 **Neither of the two winners I looked at showed self-healing happening.** SRE
 Sentinel won a FutureStack prize for automated self-healing and its README
@@ -108,7 +103,8 @@ repair, you are doing the thing they only described.
 
 ### 1:25 (35s) — Scraper Studio, and the number that matters
 
-**Show:** terminal, full width. Run:
+**Show:** terminal, full screen. Run this:
+
 ```bash
 npm run collect -w @revenant/core -- greenhouse https://job-boards.greenhouse.io/vercel
 ```
@@ -136,22 +132,40 @@ npm run collect -w @revenant/core -- greenhouse https://job-boards.greenhouse.io
 
 ### 2:00 (30s) — Self-healing, live
 
-**Now switch to split screen: browser left, terminal right.**
+This is the one section that has to be one continuous take. Alt-tab between the
+two windows rather than cutting.
 
-**Browser:** `https://revenant-chaos.vercel.app` — the original design.
+**Browser, full screen:** `https://revenant-chaos.vercel.app` — the original
+design. If it is not already there, put it there *before you hit record*:
+
+```bash
+npx vercel alias set revenant-chaos-jld8rwkq2-rays-projects-6f560386.vercel.app revenant-chaos.vercel.app
+```
 
 > "Last part. This is a job board I control, so I can break it on purpose."
 
-**Terminal:** run the heal command. It reports 60 rows, healthy.
+**Alt-tab to the terminal.** Run the heal loop — it reports 60 rows, healthy:
+
+```bash
+npm run heal -w @revenant/core -- chaos https://revenant-chaos.vercel.app
+```
 
 > "The scraper reads it fine. Sixty jobs."
 
-**Now paste the flip command. Then refresh the browser — the page visibly changes.**
+**Now redesign the board.** Same URL, completely different HTML, about two
+seconds — no redeploy, no cut:
+
+```bash
+npx vercel alias set revenant-chaos-7y9in19er-rays-projects-6f560386.vercel.app revenant-chaos.vercel.app
+```
+
+**Alt-tab back to the browser and refresh it on camera.** The page visibly
+changes. This is the moment the whole section rests on — let the viewer see it.
 
 > "Now the company redesigns their site. Same URL — every class renamed, the
 > salary moved and split apart."
 
-**Terminal:** run the heal command again.
+**Alt-tab to the terminal. Run the same heal command again.**
 
 > "Zero rows. The scraper is broken.
 >
@@ -175,251 +189,6 @@ npm run collect -w @revenant/core -- greenhouse https://job-boards.greenhouse.io
 
 ---
 
-### If you fumble
-
-Do not re-record the whole thing. The only section that must be one continuous
-take is the heal, because a cut there looks like the break was staged. Everything
-before it can be recorded in pieces and joined.
-
----
-
-## 2b. Short version — 90 seconds
-
-The floor worth recording. Four beats, nothing cut that a judge needs. Roughly
-220 words, which is 90 seconds at a normal speaking pace — do not rush it to fit.
-
-### 0:00 (15s) — The problem, and the idea
-
-**Show:** landing page.
-
-> "Everyone has applied to a job that was already filled. You check the date, it
-> says two days ago — but the company filled it in March and re-posted it.
->
-> LinkedIn and Indeed only hold a *copy* of a posting, and nobody tells them when
-> it comes down. So I don't scrape them. I scrape the companies directly —
-> Greenhouse, Lever, Ashby. The source, not a copy.
->
-> That means if a role is gone from the company's own board but still listed
-> elsewhere, it isn't a guess. That's the company contradicting the listing."
-
-### 0:15 (20s) — It works
-
-**Show:** `/feed`, filter to Engineering, hover a card so it flips.
-
-> "Five thousand live postings from ninety-six company boards, collected with
-> Bright Data Scraper Studio. Filter by function, level, remote. Every job has a
-> score — and the reason for it underneath."
-
-**Show:** click a stale card.
-
-> "Open a hundred and seven days, re-posted twice."
-
-### 0:35 (30s) — The number that matters
-
-**Show:** terminal running `npm run collect`.
-
-> "I described the data I wanted in one paragraph of plain English — no CSS
-> selectors — and Scraper Studio built the scraper. Same paragraph works on all
-> three platforms.
->
-> Now watch the salary field. These companies publish a JSON API, and it has *no
-> salary field at all* — zero out of eleven thousand postings. But the law says
-> the range has to appear in the posting, so it's buried in the description text
-> where an API can't reach it.
->
-> Scraper Studio pulls it off the page. Forty-three of fifty. Zero to eighty-six
-> percent."
-
-### 1:05 (25s) — Self-healing, for real
-
-**Show:** the heal run, one take.
-
-> "Last thing. I built a job board I control, pointed a collector at it, then
-> redesigned it — same URL, every class renamed.
->
-> The collector dropped to zero rows. Scraper Studio proposed a fix — and I don't
-> auto-approve it, because a bad fix can grab the wrong element and refill the
-> field with the wrong value. It looks healthy and the data is wrong. So the fix
-> gets checked against the company's own feed first.
->
-> Sixty rows back. It even recovered the job title, which the original scraper
-> never extracted."
-
-> "Public data in, human decision out. It never applies for you."
-
----
-
-## 2b. Absolute minimum — 60 seconds
-
-Only if you are out of time. You lose the matching feature and the detail behind
-every number, and Presentation is a scored criterion — but this still shows a
-working product, real Scraper Studio usage, and a live heal.
-
-**Show:** feed → terminal collect → heal run.
-
-> "Everyone has applied to a job that was already filled. The date says two days
-> ago, but it was filled in March and re-posted.
->
-> LinkedIn only has a copy of the posting. So I scrape the companies directly —
-> Greenhouse, Lever, Ashby. If a role is gone from the company's own board but
-> still listed elsewhere, that's the company telling you it's dead.
->
-> Five thousand live jobs, ninety-six boards, all through Bright Data Scraper
-> Studio. I described what I wanted in plain English and it built the scraper.
->
-> Their JSON API has no salary field — zero out of eleven thousand. The law puts
-> the range in the description text, so Scraper Studio reads it off the page.
-> Zero to eighty-six percent.
->
-> And when I redesigned a board under a live collector, it dropped to zero rows,
-> Scraper Studio proposed a fix, I checked it against the company's own feed
-> before approving — and sixty rows came back."
-
----
-
-## 2c. Full version — 3 minutes
-
-**How to deliver it.** Short sentences. Pause between beats. Say the numbers
-slowly — they are the evidence, and a rushed number sounds made up. Do not read
-this word for word; know each beat and say it in your own voice.
-
-Record the healing section in **one take**. A cut at the moment something breaks
-reads as the moment not having happened.
-
----
-
-### 0:00 — The problem (25s)
-
-**Show:** landing page, top of hero.
-
-> "Everyone has applied to a job that was already filled.
->
-> You check the date, it says two days ago, so you spend an hour on the
-> application. But the company filled that role in March. They just re-posted it,
-> and the clock reset.
->
-> I collected eleven thousand job postings to see how often that happens. One
-> thousand and fifteen roles are listed more than once. A hundred and seventeen
-> look less than two weeks old but are re-posts of something over a month old.
-> One role has been re-listed across six and a half years.
->
-> So checking the date does not work. The listings that waste your time look like
-> the freshest ones on the board."
-
----
-
-### 0:25 — The idea: go to the source (30s)
-
-**Show:** scroll slowly through the five story chapters. Let each one land.
-
-> "Here is the thing that makes this possible.
->
-> LinkedIn and Indeed are aggregators. They hold a *copy* of a job posting, and
-> nobody tells them when it is taken down. That copy can sit there for months.
->
-> So I do not scrape them. I scrape the companies directly — Greenhouse, Lever
-> and Ashby, the systems companies actually run their hiring on. That is the
-> source, not a copy of it.
->
-> And once you are reading the source, you can do something nobody else can: if a
-> role is gone from the company's own board but still listed on an aggregator,
-> that is not a guess. That is the company contradicting the listing."
-
-**This is the key differentiator — say it clearly and do not rush it.**
-
----
-
-### 0:55 — The product (35s)
-
-**Show:** `/feed`. Set Function to **Engineering**. Hover a card so it flips.
-
-> "Five thousand three hundred live postings from ninety-six company boards, all
-> collected with Bright Data Scraper Studio.
->
-> Filter by function, by remote or hybrid, by level, by company. Hover a card and
-> it turns over.
->
-> Every job has a score — and underneath it, the reason for that score. Not just a
-> number you have to trust."
-
-**Show:** click **Stale**, open one card.
-
-> "Open for a hundred and seven days. Re-posted twice. That is why it scored low."
-
----
-
-### 1:30 — Matching (25s)
-
-**Show:** `/match`, click **Use a sample CV**, expand one "what to add".
-
-> "Paste your CV and every live job gets scored against it.
->
-> There is no AI model here. It tells you exactly which of your skills matched,
-> and exactly what the job asks for that your CV does not mention — and it quotes
-> the sentence from the posting that says so. You can check its reasoning.
->
-> And it stops there. It will never apply for you."
-
----
-
-### 1:55 — Scraper Studio, and the number that matters (40s)
-
-**Show:** terminal. Run:
-```bash
-npm run collect -w @revenant/core -- greenhouse https://job-boards.greenhouse.io/vercel
-```
-
-> "This is the Scraper Studio collector. I described what I wanted in one
-> paragraph of plain English — no CSS selectors — and it built the scraper. The
-> same paragraph works on Greenhouse, Lever and Ashby: three completely different
-> page layouts, one description.
->
-> Now watch the salary field."
-
-**Wait for the fill-rate bars.**
-
-> "These companies publish a JSON API. It has *no salary field at all* — zero out
-> of eleven thousand postings.
->
-> But pay-transparency law says the range has to appear in the posting. So it is
-> there — buried in the description text, where an API can never reach it.
->
-> Scraper Studio pulls it out of the page. Forty-three of fifty. Zero to eighty-six
-> percent.
->
-> That is why I scrape the rendered page instead of calling the API."
-
-**Point at the accuracy block.**
-
-> "And I check the result against the company's own feed. A hundred percent on
-> every field the page actually shows."
-
----
-
-### 2:35 — Self-healing, for real (20s)
-
-**Show:** terminal, the heal run. One take.
-
-> "Last part. I built a job board I control, pointed a collector at it, then
-> redesigned it — same URL, every class renamed, the salary moved.
->
-> The collector went to zero rows. Scraper Studio proposed a fix.
->
-> I do not auto-approve it. A bad fix can grab the wrong element and refill the
-> field perfectly with the wrong value — it looks healthy and the data is wrong.
-> So the fix is checked against the company's own feed first, then approved.
->
-> Sixty rows came back. And it recovered the job title, which the original
-> scraper never managed to extract at all."
-
----
-
-### 2:55 — Close (5s)
-
-> "Public job data in. Human decision out. It never applies for you."
-
----
-
 ### The four things a judge should remember
 
 If you only get four sentences across, make them these:
@@ -432,9 +201,14 @@ If you only get four sentences across, make them these:
 4. **A heal is checked before it is trusted** — against the company's own feed,
    not against what my scraper produced yesterday.
 
-### 2:55 — Close (5s)
+---
 
-> "Public data in, human decision out. It never applies for you."
+### If you fumble
+
+Do not re-record the whole thing. The only section that must be continuous is
+the heal, because a cut there looks like the break was staged — and even there,
+alt-tabbing between windows is not a cut. Everything before it can be recorded
+in pieces and joined.
 
 ---
 
