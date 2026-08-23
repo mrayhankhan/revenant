@@ -30,9 +30,16 @@ and nobody can read 12pt on a phone.
 **Start with the chaos board on its original design.** The command to put it
 there is in the 2:00 beat below, along with the one that breaks it.
 
-**On Windows, use `npm.cmd` rather than `npm`** — PowerShell's execution policy
-blocks the `.ps1` shim and the run dies before it starts. Worth testing each
-command once before you record.
+**Every command below is written `npm.cmd` and `npx.cmd`, on purpose.** Plain
+`npm` and `npx` resolve to `.ps1` shims that PowerShell's execution policy
+refuses to load, and the run dies before it starts:
+
+> npx : File ...
+px.ps1 cannot be loaded because running scripts is disabled on
+> this system.
+
+The `.cmd` form is the same tool and skips the shim entirely. Copy the commands
+exactly as written — all three have been run and verified in this shell.
 
 **Neither of the two winners I looked at showed self-healing happening.** SRE
 Sentinel won a FutureStack prize for automated self-healing and its README
@@ -106,7 +113,7 @@ repair, you are doing the thing they only described.
 **Show:** terminal, full screen. Run this:
 
 ```bash
-npm run collect -w @revenant/core -- greenhouse https://job-boards.greenhouse.io/vercel
+npm.cmd run collect -w @revenant/core -- greenhouse https://job-boards.greenhouse.io/vercel
 ```
 
 > "I described the data I wanted in one paragraph of plain English. No CSS
@@ -139,7 +146,7 @@ two windows rather than cutting.
 design. If it is not already there, put it there *before you hit record*:
 
 ```bash
-npx vercel alias set revenant-chaos-jld8rwkq2-rays-projects-6f560386.vercel.app revenant-chaos.vercel.app
+npx.cmd vercel alias set revenant-chaos-jld8rwkq2-rays-projects-6f560386.vercel.app revenant-chaos.vercel.app
 ```
 
 > "Last part. This is a job board I control, so I can break it on purpose."
@@ -147,7 +154,7 @@ npx vercel alias set revenant-chaos-jld8rwkq2-rays-projects-6f560386.vercel.app 
 **Alt-tab to the terminal.** Run the heal loop — it reports 60 rows, healthy:
 
 ```bash
-npm run heal -w @revenant/core -- chaos https://revenant-chaos.vercel.app
+npm.cmd run heal -w @revenant/core -- chaos https://revenant-chaos.vercel.app
 ```
 
 > "The scraper reads it fine. Sixty jobs."
@@ -156,7 +163,7 @@ npm run heal -w @revenant/core -- chaos https://revenant-chaos.vercel.app
 seconds — no redeploy, no cut:
 
 ```bash
-npx vercel alias set revenant-chaos-7y9in19er-rays-projects-6f560386.vercel.app revenant-chaos.vercel.app
+npx.cmd vercel alias set revenant-chaos-7y9in19er-rays-projects-6f560386.vercel.app revenant-chaos.vercel.app
 ```
 
 **Alt-tab back to the browser and refresh it on camera.** The page visibly
@@ -178,6 +185,13 @@ changes. This is the moment the whole section rests on — let the viewer see it
 
 > "Sixty rows back. And it recovered the job title, which the original scraper
 > never managed to extract at all."
+
+**When the take is done, put the board back on the original design** — otherwise
+the next attempt starts already broken and there is nothing left to break:
+
+```bash
+npx.cmd vercel alias set revenant-chaos-jld8rwkq2-rays-projects-6f560386.vercel.app revenant-chaos.vercel.app
+```
 
 ---
 
