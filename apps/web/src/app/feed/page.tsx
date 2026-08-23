@@ -4,8 +4,14 @@ import { useEffect, useMemo, useState } from 'react';
 import clsx from 'clsx';
 
 import { useProfile } from '../../lib/profile';
-import { classifyLevel, classifyWorkMode, WORK_MODES } from '@revenant/core/match/classify';
-import type { ExperienceLevel, WorkMode } from '@revenant/core/match/classify';
+import {
+  classifyDomain,
+  classifyLevel,
+  classifyWorkMode,
+  DOMAIN_LABELS,
+  WORK_MODES,
+} from '@revenant/core/match/classify';
+import type { ExperienceLevel, JobDomain, WorkMode } from '@revenant/core/match/classify';
 
 import { JobCard, VERDICT_COLOR } from '../job-card';
 import type { JobCardData, Verdict } from '../job-card';
@@ -92,6 +98,7 @@ export default function FeedPage(): React.ReactElement {
   const [company, setCompany] = useState<string | null>(null);
   const [workMode, setWorkMode] = useState<WorkMode | null>(null);
   const [level, setLevel] = useState<ExperienceLevel | null>(null);
+  const [domain, setDomain] = useState<JobDomain | null>(null);
   const [personalised, setPersonalised] = useState(false);
 
   useEffect(() => {
@@ -153,6 +160,16 @@ export default function FeedPage(): React.ReactElement {
 
   const counts = data?.counts ?? EMPTY_COUNTS;
 
+  /** Functions present in the loaded set, most roles first. */
+  const domains = useMemo(() => {
+    const tally = new Map<JobDomain, number>();
+    for (const row of data?.postings ?? []) {
+      const value = classifyDomain(row.title);
+      tally.set(value, (tally.get(value) ?? 0) + 1);
+    }
+    return [...tally.entries()].sort((a, b) => b[1] - a[1]);
+  }, [data]);
+
   /** Companies present in the current result set, most roles first. */
   const companies = useMemo(() => {
     const tally = new Map<string, number>();
@@ -189,8 +206,10 @@ export default function FeedPage(): React.ReactElement {
       rows = rows.filter((row) => classifyLevel(row.title, row.employmentType) === level);
     }
 
+    if (domain !== null) rows = rows.filter((row) => classifyDomain(row.title) === domain);
+
     return rows;
-  }, [data, personalised, filter, query, company, workMode, level]);
+  }, [data, personalised, filter, query, company, workMode, level, domain]);
 
   const total = useCountUp(counts.all);
   const decaying = counts.ghost + counts.stale;
@@ -258,6 +277,28 @@ export default function FeedPage(): React.ReactElement {
         />
       </div>
 
+      {/* Job function leads, as it does on every large board: it is the first
+          cut anyone makes, and it is the only filter that turns 6,000 postings
+          into a set worth reading. Counts come from the loaded set. */}
+      {domains.length > 0 && (
+        <div className="flex flex-wrap items-center gap-1.5">
+          <span className="mr-1 text-[11px] uppercase tracking-wide text-[var(--text-faint)]">
+            Function
+          </span>
+          {domains.map(([value, count]) => (
+            <button
+              key={value}
+              className="chip"
+              data-selected={domain === value}
+              onClick={() => setDomain(domain === value ? null : value)}
+            >
+              {DOMAIN_LABELS[value]}
+              <span className="tabular ml-1.5 text-[var(--text-faint)]">{count}</span>
+            </button>
+          ))}
+        </div>
+      )}
+
       {/* Work mode and experience level, which is what people filter on before
           anything else. Both are inferred from the title and location, because
           the structured fields are filled on only a minority of postings. */}
@@ -290,16 +331,17 @@ export default function FeedPage(): React.ReactElement {
           </button>
         ))}
 
-        {(workMode || level || company) && (
+        {(workMode || level || company || domain) && (
           <button
             className="btn btn-quiet ml-2 !py-1 !text-[12px]"
             onClick={() => {
               setWorkMode(null);
               setLevel(null);
               setCompany(null);
+              setDomain(null);
             }}
           >
-            Clear
+            Clear filters
           </button>
         )}
       </div>

@@ -1,6 +1,42 @@
 import { describe, expect, it } from 'vitest';
 
-import { classifyLevel, classifyWorkMode, isInternship } from './classify.js';
+import { classifyDomain, classifyLevel, classifyWorkMode, isInternship } from './classify.js';
+
+describe('classifyDomain', () => {
+  it('places the plain cases', () => {
+    expect(classifyDomain('Senior Backend Engineer')).toBe('engineering');
+    expect(classifyDomain('Product Manager, Payments')).toBe('product');
+    expect(classifyDomain('Account Executive, Enterprise')).toBe('sales');
+    expect(classifyDomain('Financial Analyst')).toBe('finance');
+    expect(classifyDomain('Technical Recruiter')).toBe('people');
+    expect(classifyDomain('Corporate Counsel')).toBe('legal');
+  });
+
+  /*
+   * The reason ordering matters. Each of these contains a word that a broader
+   * rule further down would claim, and the compound meaning is the correct one.
+   */
+  it('resolves titles that belong to two functions at once', () => {
+    expect(classifyDomain('Sales Engineer')).toBe('sales');
+    expect(classifyDomain('Solutions Architect')).toBe('sales');
+    expect(classifyDomain('Data Engineer')).toBe('data');
+    expect(classifyDomain('Machine Learning Engineer')).toBe('data');
+    expect(classifyDomain('Product Designer')).toBe('design');
+    expect(classifyDomain('Support Engineer')).toBe('support');
+  });
+
+  it('keeps infrastructure and security inside engineering', () => {
+    expect(classifyDomain('Site Reliability Engineer')).toBe('engineering');
+    expect(classifyDomain('Security Engineer, AppSec')).toBe('engineering');
+    expect(classifyDomain('Staff Platform Engineer')).toBe('engineering');
+  });
+
+  it('falls back to other rather than guessing', () => {
+    expect(classifyDomain('Office Manager')).toBe('operations');
+    expect(classifyDomain('Zookeeper')).toBe('other');
+    expect(classifyDomain(null)).toBe('other');
+  });
+});
 
 describe('classifyLevel', () => {
   it('reads the obvious levels from a title', () => {
