@@ -14,7 +14,101 @@ All four are in `docs/screenshots/` and live in the README.
 
 ---
 
-## 2. Demo video — 3 minutes
+## 2a. Short version — 90 seconds
+
+The floor worth recording. Four beats, nothing cut that a judge needs. Roughly
+220 words, which is 90 seconds at a normal speaking pace — do not rush it to fit.
+
+### 0:00 (15s) — The problem, and the idea
+
+**Show:** landing page.
+
+> "Everyone has applied to a job that was already filled. You check the date, it
+> says two days ago — but the company filled it in March and re-posted it.
+>
+> LinkedIn and Indeed only hold a *copy* of a posting, and nobody tells them when
+> it comes down. So I don't scrape them. I scrape the companies directly —
+> Greenhouse, Lever, Ashby. The source, not a copy.
+>
+> That means if a role is gone from the company's own board but still listed
+> elsewhere, it isn't a guess. That's the company contradicting the listing."
+
+### 0:15 (20s) — It works
+
+**Show:** `/feed`, filter to Engineering, hover a card so it flips.
+
+> "Five thousand live postings from ninety-six company boards, collected with
+> Bright Data Scraper Studio. Filter by function, level, remote. Every job has a
+> score — and the reason for it underneath."
+
+**Show:** click a stale card.
+
+> "Open a hundred and seven days, re-posted twice."
+
+### 0:35 (30s) — The number that matters
+
+**Show:** terminal running `npm run collect`.
+
+> "I described the data I wanted in one paragraph of plain English — no CSS
+> selectors — and Scraper Studio built the scraper. Same paragraph works on all
+> three platforms.
+>
+> Now watch the salary field. These companies publish a JSON API, and it has *no
+> salary field at all* — zero out of eleven thousand postings. But the law says
+> the range has to appear in the posting, so it's buried in the description text
+> where an API can't reach it.
+>
+> Scraper Studio pulls it off the page. Forty-three of fifty. Zero to eighty-six
+> percent."
+
+### 1:05 (25s) — Self-healing, for real
+
+**Show:** the heal run, one take.
+
+> "Last thing. I built a job board I control, pointed a collector at it, then
+> redesigned it — same URL, every class renamed.
+>
+> The collector dropped to zero rows. Scraper Studio proposed a fix — and I don't
+> auto-approve it, because a bad fix can grab the wrong element and refill the
+> field with the wrong value. It looks healthy and the data is wrong. So the fix
+> gets checked against the company's own feed first.
+>
+> Sixty rows back. It even recovered the job title, which the original scraper
+> never extracted."
+
+> "Public data in, human decision out. It never applies for you."
+
+---
+
+## 2b. Absolute minimum — 60 seconds
+
+Only if you are out of time. You lose the matching feature and the detail behind
+every number, and Presentation is a scored criterion — but this still shows a
+working product, real Scraper Studio usage, and a live heal.
+
+**Show:** feed → terminal collect → heal run.
+
+> "Everyone has applied to a job that was already filled. The date says two days
+> ago, but it was filled in March and re-posted.
+>
+> LinkedIn only has a copy of the posting. So I scrape the companies directly —
+> Greenhouse, Lever, Ashby. If a role is gone from the company's own board but
+> still listed elsewhere, that's the company telling you it's dead.
+>
+> Five thousand live jobs, ninety-six boards, all through Bright Data Scraper
+> Studio. I described what I wanted in plain English and it built the scraper.
+>
+> Their JSON API has no salary field — zero out of eleven thousand. The law puts
+> the range in the description text, so Scraper Studio reads it off the page.
+> Zero to eighty-six percent.
+>
+> And when I redesigned a board under a live collector, it dropped to zero rows,
+> Scraper Studio proposed a fix, I checked it against the company's own feed
+> before approving — and sixty rows came back."
+
+---
+
+## 2c. Full version — 3 minutes
 
 **How to deliver it.** Short sentences. Pause between beats. Say the numbers
 slowly — they are the evidence, and a rushed number sounds made up. Do not read
