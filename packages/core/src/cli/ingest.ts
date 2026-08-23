@@ -21,6 +21,7 @@ import { readFile } from 'node:fs/promises';
 import { discoverCompanies } from '../discovery/discover.js';
 import type { DiscoveredBoard } from '../discovery/discover.js';
 import { greenhouseOracle, leverOracle } from '../oracle/ats.js';
+import { ashbyOracle } from '../oracle/ashby.js';
 import { scoreLiveness } from '../decay/liveness.js';
 import { contentHash, deduplicate } from '../normalize/dedup.js';
 import { sampleRun, updateBaseline } from '../healing/baseline.js';
@@ -36,9 +37,10 @@ import {
 } from '../db/index.js';
 import type { Oracle } from '../collectors/base.js';
 
-const ORACLES: Partial<Record<DiscoveredBoard['platform'], Oracle>> = {
+const ORACLES: Record<DiscoveredBoard['platform'], Oracle> = {
   greenhouse: greenhouseOracle,
   lever: leverOracle,
+  ashby: ashbyOracle,
 };
 
 async function companyNames(argv: string[]): Promise<string[]> {

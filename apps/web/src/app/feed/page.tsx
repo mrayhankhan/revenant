@@ -170,14 +170,14 @@ export default function FeedPage(): React.ReactElement {
     return [...tally.entries()].sort((a, b) => b[1] - a[1]);
   }, [data]);
 
-  /** Companies present in the current result set, most roles first. */
+  /** Companies present in the loaded set, alphabetical so the list is scannable. */
   const companies = useMemo(() => {
     const tally = new Map<string, number>();
     for (const row of data?.postings ?? []) {
       if (!row.company) continue;
       tally.set(row.company, (tally.get(row.company) ?? 0) + 1);
     }
-    return [...tally.entries()].sort((a, b) => b[1] - a[1]).slice(0, 16);
+    return [...tally.entries()].sort((a, b) => a[0].localeCompare(b[0]));
   }, [data]);
 
   const visible = useMemo(() => {
@@ -277,63 +277,70 @@ export default function FeedPage(): React.ReactElement {
         />
       </div>
 
-      {/* Job function leads, as it does on every large board: it is the first
-          cut anyone makes, and it is the only filter that turns 6,000 postings
-          into a set worth reading. Counts come from the loaded set. */}
-      {domains.length > 0 && (
-        <div className="flex flex-wrap items-center gap-1.5">
-          <span className="mr-1 text-[11px] uppercase tracking-wide text-[var(--text-faint)]">
-            Function
-          </span>
+      {/*
+        Four selects on one line rather than fifty-odd chips.
+        Function alone has twelve values and company thirty-eight; laid out as
+        chips they filled the screen and pushed the jobs below the fold, which is
+        the opposite of what a filter is for. Counts stay visible inside each
+        option, so nothing is lost by collapsing them.
+      */}
+      <div className="flex flex-wrap items-center gap-2">
+        <select
+          className="select"
+          value={domain ?? ''}
+          onChange={(event) => setDomain((event.target.value || null) as JobDomain | null)}
+        >
+          <option value="">All functions</option>
           {domains.map(([value, count]) => (
-            <button
-              key={value}
-              className="chip"
-              data-selected={domain === value}
-              onClick={() => setDomain(domain === value ? null : value)}
-            >
-              {DOMAIN_LABELS[value]}
-              <span className="tabular ml-1.5 text-[var(--text-faint)]">{count}</span>
-            </button>
+            <option key={value} value={value}>
+              {DOMAIN_LABELS[value]} ({count})
+            </option>
           ))}
-        </div>
-      )}
+        </select>
 
-      {/* Work mode and experience level, which is what people filter on before
-          anything else. Both are inferred from the title and location, because
-          the structured fields are filled on only a minority of postings. */}
-      <div className="flex flex-wrap items-center gap-1.5">
-        <span className="mr-1 text-[11px] uppercase tracking-wide text-[var(--text-faint)]">
-          Work
-        </span>
-        {WORK_MODES.map((mode) => (
-          <button
-            key={mode}
-            className="chip capitalize"
-            data-selected={workMode === mode}
-            onClick={() => setWorkMode(workMode === mode ? null : mode)}
-          >
-            {mode}
-          </button>
-        ))}
+        <select
+          className="select"
+          value={workMode ?? ''}
+          onChange={(event) => setWorkMode((event.target.value || null) as WorkMode | null)}
+        >
+          <option value="">Anywhere</option>
+          {WORK_MODES.map((mode) => (
+            <option key={mode} value={mode}>
+              {mode[0]?.toUpperCase()}
+              {mode.slice(1)}
+            </option>
+          ))}
+        </select>
 
-        <span className="ml-4 mr-1 text-[11px] uppercase tracking-wide text-[var(--text-faint)]">
-          Level
-        </span>
-        {LEVEL_OPTIONS.map(({ value, label }) => (
-          <button
-            key={value}
-            className="chip"
-            data-selected={level === value}
-            onClick={() => setLevel(level === value ? null : value)}
-          >
-            {label}
-          </button>
-        ))}
+        <select
+          className="select"
+          value={level ?? ''}
+          onChange={(event) => setLevel((event.target.value || null) as ExperienceLevel | null)}
+        >
+          <option value="">Any level</option>
+          {LEVEL_OPTIONS.map(({ value, label }) => (
+            <option key={value} value={value}>
+              {label}
+            </option>
+          ))}
+        </select>
+
+        <select
+          className="select"
+          value={company ?? ''}
+          onChange={(event) => setCompany(event.target.value || null)}
+        >
+          <option value="">All companies</option>
+          {companies.map(([name, count]) => (
+            <option key={name} value={name}>
+              {name} ({count})
+            </option>
+          ))}
+        </select>
 
         {(workMode || level || company || domain) && (
           <button
-            className="btn btn-quiet ml-2 !py-1 !text-[12px]"
+            className="btn btn-quiet !py-1.5 !text-[12px]"
             onClick={() => {
               setWorkMode(null);
               setLevel(null);
@@ -341,35 +348,14 @@ export default function FeedPage(): React.ReactElement {
               setDomain(null);
             }}
           >
-            Clear filters
+            Clear
           </button>
         )}
-      </div>
 
-      {/* Companies, with counts. Filtering by employer is the first thing
-          anyone reaches for on a job board and it costs one click here. */}
-      {companies.length > 0 && (
-        <div className="flex flex-wrap gap-1.5">
-          <button
-            className="chip"
-            data-selected={company === null}
-            onClick={() => setCompany(null)}
-          >
-            All companies
-          </button>
-          {companies.map(([name, count]) => (
-            <button
-              key={name}
-              className="chip"
-              data-selected={company === name}
-              onClick={() => setCompany(company === name ? null : name)}
-            >
-              {name}
-              <span className="tabular ml-1.5 text-[var(--text-faint)]">{count}</span>
-            </button>
-          ))}
-        </div>
-      )}
+        <span className="tabular ml-auto text-[12px] text-[var(--text-faint)]">
+          {visible.length.toLocaleString()} shown
+        </span>
+      </div>
 
       {error && (
         <div className="panel p-5 text-sm verdict-ghost">

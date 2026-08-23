@@ -5,6 +5,7 @@ import { DecayField } from './decay-field';
 import { HealDemo } from './heal-demo';
 import { HeroActions } from './hero-actions';
 import { Reveal } from './reveal';
+import { ScrollStory } from './scroll-story';
 import { CountUp } from './count-up';
 
 export const dynamic = 'force-dynamic';
@@ -182,6 +183,9 @@ export default async function Home(): Promise<React.ReactElement> {
           </Reveal>
         </section>
       )}
+
+      {/* ---- The story, told by scrolling ---------------------------------- */}
+      <ScrollStory />
 
       {/* ---- Self-healing, performed --------------------------------------- */}
       <section className="grid gap-8 lg:grid-cols-2 lg:items-center">
